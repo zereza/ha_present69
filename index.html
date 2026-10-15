@@ -1,0 +1,1775 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานสรุปภาวะสุขภาพและสมรรถภาพร่างกายบุคลากร โรงพยาบาลศรีณรงค์</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Prompt -->
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2canvas & jsPDF for 16:9 PowerPoint Slide PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background-color: #f1f5f9;
+            font-size: 16px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+        /* Boost readability across all small utility classes */
+        #report-capture-area .text-\[10px\],
+        #ppt-slide-stage .text-\[10px\] {
+            font-size: 0.82rem !important;
+            line-height: 1.3 !important;
+        }
+        #report-capture-area .text-\[11px\],
+        #ppt-slide-stage .text-\[11px\] {
+            font-size: 0.88rem !important;
+            line-height: 1.35 !important;
+        }
+        #report-capture-area .text-xs,
+        #ppt-slide-stage .text-xs {
+            font-size: 0.95rem !important;
+            line-height: 1.45 !important;
+        }
+        #report-capture-area .text-sm,
+        #ppt-slide-stage .text-sm {
+            font-size: 1.05rem !important;
+            line-height: 1.55 !important;
+        }
+        #report-capture-area .text-base,
+        #ppt-slide-stage .text-base {
+            font-size: 1.15rem !important;
+            line-height: 1.6 !important;
+        }
+        @page {
+            size: 297mm 167mm; /* 16:9 Widescreen Slide Aspect Ratio */
+            margin: 0;
+        }
+        @media print {
+            body {
+                background-color: #ffffff !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-container {
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+            .card-break {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .page-break-before {
+                page-break-before: always;
+            }
+        }
+        .progress-bar-animate {
+            transition: width 1s ease-in-out;
+        }
+        /* Dedicated 16:9 Slide Staging Container (1600x900) for Exact PowerPoint Proportions */
+        #ppt-slide-stage {
+            position: fixed;
+            left: -99999px;
+            top: 0;
+            width: 1600px;
+            z-index: -50;
+            pointer-events: none;
+        }
+        .ppt-slide-frame {
+            width: 1600px;
+            height: 900px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased py-6 px-4 sm:px-6 lg:px-8">
+
+    <!-- PDF Generation Loading Overlay -->
+    <div id="pdf-loading-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 max-w-sm w-full text-center space-y-4">
+            <div class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto animate-spin">
+                <i data-lucide="loader-2" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-bold text-slate-900" id="pdf-loading-title">กำลังสร้างสไลด์ PDF (16:9)...</h3>
+                <p class="text-xs text-slate-500 mt-1" id="pdf-loading-subtitle">กำลังจัดขนาดหน้าแบบ Widescreen สำหรับนำเสนอ PowerPoint</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Bar (Not printed) -->
+    <div class="max-w-6xl mx-auto mb-6 flex flex-wrap justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 text-white p-2.5 rounded-lg shadow-sm">
+                <i data-lucide="presentation" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-slate-800">โหมดนำเสนอผู้บริหาร โรงพยาบาลศรีณรงค์</h2>
+                    <span class="bg-indigo-50 text-indigo-700 border border-indigo-200 text-[10px] font-bold px-2 py-0.5 rounded-full">รองรับสไลด์ 16:9</span>
+                </div>
+                <p class="text-xs text-slate-500">บูรณาการผลตรวจสุขภาพประจำปี (ปี 68-69) และผลทดสอบสมรรถภาพร่างกาย & โภชนาการ (ปี 68)</p>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-2">
+            <!-- View Switcher -->
+            <div class="inline-flex flex-wrap rounded-lg border border-slate-200 p-1 bg-slate-100">
+                <button onclick="setViewMode('both')" id="view-both" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-white text-blue-700 shadow-sm transition flex items-center gap-1.5">
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> แสดงทั้งหมด (5 สไลด์)
+                </button>
+                <button onclick="setViewMode('table')" id="view-table" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                    <i data-lucide="table" class="w-3.5 h-3.5"></i> เฉพาะตาราง (2 สไลด์ตัวใหญ่)
+                </button>
+                <button onclick="setViewMode('infographic')" id="view-infographic" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                    <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i> เฉพาะอินโฟกราฟิก (2 สไลด์)
+                </button>
+                <button onclick="setViewMode('fitness')" id="view-fitness" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                    <i data-lucide="dumbbell" class="w-3.5 h-3.5"></i> สมรรถภาพ & โภชนาการ (1 สไลด์)
+                </button>
+            </div>
+
+            <!-- Filter Buttons -->
+            <div class="inline-flex flex-wrap rounded-lg border border-slate-200 p-1 bg-slate-50">
+                <button onclick="filterCards('all')" id="btn-all" class="px-3 py-1.5 text-xs font-medium rounded-md bg-white text-slate-800 shadow-sm transition">ทั้งหมด</button>
+                <button onclick="filterCards('critical')" id="btn-critical" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-red-600 transition flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-red-500"></span> เร่งด่วน/ใส่ใจพิเศษ (2)
+                </button>
+                <button onclick="filterCards('warning')" id="btn-warning" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-amber-600 transition flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span> ส่งเสริมเชิงรุก (2)
+                </button>
+                <button onclick="filterCards('good')" id="btn-good" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-emerald-600 transition flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span> ต้นทุนสุขภาพดีเยี่ยม (1)
+                </button>
+            </div>
+
+            <!-- Interactive Edit Mode Toggle (For Instant Custom Updates) -->
+            <button onclick="toggleEditMode()" id="edit-mode-btn" class="px-3 py-2 text-xs font-semibold rounded-lg border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition flex items-center gap-1.5" title="คลิกเพื่อแก้ไขข้อความหรือตัวเลขบนหน้าจอได้โดยตรง">
+                <i data-lucide="pen-tool" class="w-3.5 h-3.5"></i>
+                <span id="edit-mode-label">แก้ไขตัวเลขบนจอ</span>
+            </button>
+
+            <!-- Direct CSV File Reader Button to Guarantee 100% Sync with Local CSV -->
+            <label for="csv-file-input" class="cursor-pointer px-3 py-2 text-xs font-semibold rounded-lg border border-teal-200 bg-teal-50 text-teal-800 hover:bg-teal-100 transition flex items-center gap-1.5" title="อัปโหลดไฟล์ CSV สรุปผลตรวจสุขภาพเพื่อตรวจสอบหรืออัปเดตตารางอัตโนมัติ">
+                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5 text-teal-600"></i>
+                <span>ซิงค์ไฟล์ CSV ล่าสุด</span>
+                <input type="file" id="csv-file-input" accept=".csv,.txt" class="hidden" onchange="handleCSVUpload(event)">
+            </label>
+
+            <!-- Direct PDF Slide Download Dropdown by View -->
+            <div class="relative inline-block text-left" id="pdf-dropdown-wrapper">
+                <div class="inline-flex rounded-lg shadow-sm">
+                    <button onclick="downloadPDFByMode('current')" id="main-pdf-btn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-l-lg transition border-r border-blue-500">
+                        <i data-lucide="monitor-down" class="w-4 h-4"></i>
+                        <span>ดาวน์โหลดสไลด์ PDF 16:9 (<span id="current-view-label">ทั้งหมด 5 หน้า</span>)</span>
+                    </button>
+                    <button onclick="togglePdfMenu(event)" type="button" class="inline-flex items-center bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-2.5 rounded-r-lg transition" title="เลือกดาวน์โหลดสไลด์แยกตามมุมมอง">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Dropdown Menu Options -->
+                <div id="pdf-dropdown-menu" class="hidden absolute right-0 mt-2 w-80 rounded-xl bg-white shadow-xl border border-slate-200 z-40 py-2 text-xs text-slate-700">
+                    <div class="px-3.5 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 flex items-center justify-between">
+                        <span>ดาวน์โหลดสไลด์นำเสนอ (16:9 ตัวอักษรใหญ่)</span>
+                        <span class="text-[10px] bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded font-semibold">Full HD</span>
+                    </div>
+                    <button onclick="downloadPDFByMode('current')" class="w-full text-left px-3.5 py-2.5 hover:bg-blue-50 flex items-center justify-between transition">
+                        <span class="flex items-center gap-2 font-semibold text-blue-700">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                            ดาวน์โหลดตามมุมมองที่เปิดอยู่ตอนนี้
+                        </span>
+                        <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium">แนะนำ</span>
+                    </button>
+                    <button onclick="downloadPDFByMode('both')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="layers" class="w-4 h-4 text-slate-500"></i>
+                            <span>ชุดสไลด์นำเสนอฉบับเต็ม (ครบทุกส่วน)</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">5 สไลด์</span>
+                    </button>
+                    <button onclick="downloadPDFByMode('table')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="table" class="w-4 h-4 text-slate-500"></i>
+                            <span>สไลด์ตารางสรุปผู้บริหาร (แยกหน้าให้อ่านง่าย)</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">2 สไลด์</span>
+                    </button>
+                    <button onclick="downloadPDFByMode('fitness')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="dumbbell" class="w-4 h-4 text-slate-500"></i>
+                            <span>สไลด์สมรรถภาพร่างกาย & โภชนาการ (ปี 68)</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">1 สไลด์</span>
+                    </button>
+                    <button onclick="downloadPDFByMode('infographic')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-4 h-4 text-slate-500"></i>
+                            <span>สไลด์อินโฟกราฟิก 4 มิติหลัก</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">2 สไลด์</span>
+                    </button>
+                    <div class="border-t border-slate-100 mt-1 pt-1">
+                        <button onclick="triggerBrowserPrint()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-500 transition">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                            <span>สั่งพิมพ์ผ่านเบราว์เซอร์ (Print)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div id="report-capture-area" class="max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden print-container">
+        
+        <!-- Header Banner -->
+        <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-teal-950 text-white p-8 relative overflow-hidden">
+            <!-- Decorative background circles -->
+            <div class="absolute -right-10 -top-10 w-64 h-64 rounded-full bg-blue-500 opacity-10 blur-2xl"></div>
+            <div class="absolute right-40 -bottom-20 w-80 h-80 rounded-full bg-teal-400 opacity-15 blur-3xl"></div>
+
+            <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-3">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-semibold">
+                            <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+                            โรงพยาบาลศรีณรงค์ (Srinarong Hospital)
+                        </span>
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-semibold">
+                            <i data-lucide="heart-handshake" class="w-3.5 h-3.5"></i>
+                            คณะกรรมการพัฒนาโรงพยาบาลส่งเสริมสุขภาพ (HPH) & ศูนย์คุณภาพ
+                        </span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-white mb-2">
+                        รายงานสรุปภาวะสุขภาพ สมรรถภาพร่างกาย และแผนสนับสนุนสุขภาวะบุคลากร
+                    </h1>
+                    <p class="text-slate-200 text-sm sm:text-base max-w-3xl leading-relaxed">
+                        ด้วยความมุ่งมั่นของคณะทำงานในการ <strong class="text-teal-300 font-semibold">“ดูแลคนทำงาน เพื่อส่งต่อบริการคุณภาพสู่ผู้ป่วย”</strong> รายงานฉบับนี้ได้บูรณาการผลตรวจสุขภาพประจำปี (ปี 2568–2569) ร่วมกับผลทดสอบสมรรถภาพและโภชนาการเชิงรุก (ปี 2568) เพื่อวางแนวทางส่งเสริมสุขภาพบุคลากรอย่างเป็นรูปธรรมและยั่งยืน
+                    </p>
+                </div>
+
+                <!-- Summary Pills -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-white/10 backdrop-blur-sm p-3.5 rounded-xl border border-white/15 shrink-0">
+                    <div class="text-center px-3 py-1 border-r border-white/10">
+                        <div class="text-[11px] text-slate-300 mb-0.5">ร่วมวัดสมรรถภาพ ปี 68</div>
+                        <div class="text-xl font-bold text-sky-300">80%</div>
+                        <div class="text-[10px] text-slate-300">116 / 145 คน</div>
+                    </div>
+                    <div class="text-center px-3 py-1 sm:border-r border-white/10">
+                        <div class="text-[11px] text-slate-300 mb-0.5">ใส่ใจเร่งด่วน</div>
+                        <div class="text-xl font-bold text-rose-400 flex items-center justify-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span> 2
+                        </div>
+                        <div class="text-[10px] text-slate-300">พันธกิจหลัก</div>
+                    </div>
+                    <div class="text-center px-3 py-1 border-r border-white/10">
+                        <div class="text-[11px] text-slate-300 mb-0.5">ส่งเสริมเชิงรุก</div>
+                        <div class="text-xl font-bold text-amber-300 flex items-center justify-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-400"></span> 3
+                        </div>
+                        <div class="text-[10px] text-slate-300">มิติพฤติกรรม/สรีระ</div>
+                    </div>
+                    <div class="text-center px-3 py-1">
+                        <div class="text-[11px] text-slate-300 mb-0.5">เฝ้าระวังวัณโรค (TB)</div>
+                        <div class="text-xl font-bold text-amber-300 flex items-center justify-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span> 1 ราย/ปี
+                        </div>
+                        <div class="text-[10px] text-slate-300">พบติดเชื้อ TB ปี 68 (1) / ปี 69 (1)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline Banner for Executive Clarity -->
+            <div class="relative z-10 mt-6 pt-4 border-t border-white/15 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-200">
+                <div class="flex flex-wrap items-center gap-4">
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="calendar-check" class="w-4 h-4 text-emerald-400"></i>
+                        <strong>ตรวจสุขภาพประจำปี:</strong> ดูแลต่อเนื่องทุกปี (เปรียบเทียบแนวโน้ม ปี 2568 – 2569)
+                    </span>
+                    <span class="flex items-center gap-1.5">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i>
+                        <strong>ตรวจสมรรถภาพ & โภชนาการเชิงรุก:</strong> เริ่มดำเนินการปี 2568 (26–28 ส.ค. 68) | <span class="text-amber-300 font-semibold underline underline-offset-2">ปี 2569 เตรียมสานต่อโครงการเพื่อติดตามผลลัพธ์</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMMITTEE COMMITMENT & EXECUTIVE OVERVIEW SYNTHESIS -->
+        <div class="bg-gradient-to-r from-teal-50/80 via-blue-50/60 to-indigo-50/60 border-b border-teal-200/70 p-6 sm:px-8 card-break">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                <div class="lg:col-span-8 flex items-start gap-3.5">
+                    <div class="bg-teal-600 text-white p-3 rounded-xl shrink-0 mt-0.5 shadow-sm">
+                        <i data-lucide="heart-handshake" class="w-6 h-6"></i>
+                    </div>
+                    <div class="space-y-1.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider bg-teal-100 text-teal-800 px-2.5 py-0.5 rounded-full">เจตนารมณ์คณะทำงาน HPH & ศูนย์คุณภาพ</span>
+                            <h3 class="text-base font-bold text-slate-900">
+                                มุ่งสร้าง “องค์กรแห่งความสุขและสุขภาพดี” (Happy & Healthy Hospital)
+                            </h3>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+                            คณะทำงานมีความตั้งใจจริงในการดูแลสุขภาพและความปลอดภัยของบุคลากรทุกกลุ่มวัยอย่างรอบด้าน ทั้งการคัดกรองโรคจากการทำงานที่ช่วยให้ <strong>ตรวจพบการติดเชื้อวัณโรคปอด (TB) จากเอกซเรย์ปอดในปี 2568 จำนวน 1 ราย และปี 2569 จำนวน 1 ราย</strong> จนเข้าสู่ระบบการดูแลรักษาได้อย่างรวดเร็ว ควบคู่กับการเร่งสร้างภูมิคุ้มกันไวรัสตับอักเสบบี (100 ราย) และการตรวจวัดสมรรถภาพ-โภชนาการเชิงรุกที่สะท้อนความเชื่อมโยงของ <strong>พฤติกรรมบริโภคอาหารมัน-หวาน-เค็มเกินเกณฑ์ (44%–51%)</strong> สู่ <strong>ภาวะอ้วนลงพุง (37.9% หรือ 44 ราย), น้ำหนักเกิน (53%), ความดันโลหิตสูงระยะเริ่มต้น (Pre-HT 44%), ตับอักเสบแฝง (23%)</strong> และ <strong>ภาวะไหล่ตึงจากการทำงาน 46.6% (54 ราย)</strong> เพื่อนำไปสู่แผนสนับสนุนสุขภาวะที่ตรงจุดและอบอุ่น
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 3 Caring Pillars Badge Box -->
+                <div class="lg:col-span-4 bg-white/90 rounded-xl p-3.5 border border-teal-200/80 shadow-sm space-y-2">
+                    <div class="text-xs font-bold text-teal-900 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+                        <i data-lucide="compass" class="w-4 h-4 text-teal-600"></i>
+                        แนวทางสนับสนุนบุคลากร 3 มิติ (Caring Strategy)
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+                        <div class="bg-rose-50/80 p-2 rounded-lg border border-rose-100">
+                            <div class="font-bold text-rose-700">1. ปกป้อง & รักษา</div>
+                            <div class="text-[10px] text-slate-600 mt-0.5">วัคซีนไวรัสบี 100 ราย & ดูแล TB</div>
+                        </div>
+                        <div class="bg-amber-50/80 p-2 rounded-lg border border-amber-100">
+                            <div class="font-bold text-amber-800">2. ฟื้นฟูสรีระ</div>
+                            <div class="text-[10px] text-slate-600 mt-0.5">แก้ไหล่ตึง & เพิ่มกล้ามเนื้อ</div>
+                        </div>
+                        <div class="bg-emerald-50/80 p-2 rounded-lg border border-emerald-100">
+                            <div class="font-bold text-emerald-700">3. ปรับสิ่งแวดล้อม</div>
+                            <div class="text-[10px] text-slate-600 mt-0.5">เบรกสุขภาพดี ลดหวานมันเค็ม</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSV PREVIEW & SYNC PANEL (Hidden by default until user uploads CSV) -->
+        <div id="csv-sync-banner" class="hidden bg-teal-900 text-white px-6 py-4 border-b border-teal-700 no-print">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+                    <div>
+                        <h4 class="text-sm font-bold">อ่านข้อมูลจากไฟล์ CSV ล่าสุดสำเร็จแล้ว</h4>
+                        <p class="text-xs text-teal-200" id="csv-sync-summary">คุณสามารถตรวจสอบตารางข้อมูลดิบด้านล่าง หรือคลิกเพื่อคัดลอก/อัปเดตลงในตารางหลักได้ทันที</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('csv-sync-banner').classList.add('hidden')" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-lg">ปิดหน้าต่างนี้</button>
+            </div>
+            <div id="csv-raw-preview" class="mt-3 max-h-60 overflow-y-auto bg-slate-900/90 rounded-lg p-3 text-xs font-mono border border-teal-700/60"></div>
+        </div>
+
+        <!-- SECTION 1: EXECUTIVE SUMMARY TABLE -->
+        <div id="section-table" class="p-6 sm:p-8 border-b border-slate-200 bg-white card-break">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-7 bg-blue-600 rounded-full"></div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+                            ตารางสรุปผลการตรวจสุขภาพ สมรรถภาพร่างกาย และแผนสนับสนุนสุขภาวะบุคลากร
+                        </h2>
+                        <p class="text-xs text-slate-500">สรุปตัวชี้วัดสำคัญจำแนกตามลำดับความสำคัญ และมาตรการดูแลบุคลากรที่เสนอต่อผู้บริหาร (Executive Care Matrix)</p>
+                    </div>
+                </div>
+                <button onclick="copyTableText()" id="copy-btn" class="no-print self-start sm:self-auto inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-blue-600 bg-slate-100 hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-slate-200 transition">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                    <span id="copy-btn-text">คัดลอกข้อมูลตาราง</span>
+                </button>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                <table class="w-full text-left border-collapse" id="executive-table">
+                    <thead>
+                        <tr class="bg-slate-900 text-white text-sm uppercase tracking-wider">
+                            <th class="py-4 px-3 font-semibold w-10 text-center border-r border-slate-700">#</th>
+                            <th class="py-4 px-4 font-semibold w-1/5 border-r border-slate-700">มิติการดูแลสุขภาพ (Theme)</th>
+                            <th class="py-4 px-4 font-semibold w-1/5 border-r border-slate-700">ประเด็นสำคัญที่พบ (Key Insight)</th>
+                            <th class="py-4 px-4 font-semibold w-1/4 border-r border-slate-700">ตัวเลขสถิติสำคัญ (Key Indicators)</th>
+                            <th class="py-4 px-3 font-semibold w-36 text-center border-r border-slate-700">ระดับความสำคัญ</th>
+                            <th class="py-4 px-4 font-semibold">แนวทางสนับสนุนและดูแลบุคลากร (Supportive Action Plan)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-base">
+                        <!-- Row 1: Metabolic & Body Composition -->
+                        <tr class="table-row-item hover:bg-red-50/30 transition" data-category="critical">
+                            <td class="py-4 px-3 font-bold text-slate-400 text-center align-top">1</td>
+                            <td class="py-4 px-4 align-top">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="heart-pulse" class="w-4 h-4 text-red-600 shrink-0"></i>
+                                    การดูแลภาวะเมตาบอลิก & สัดส่วนร่างกาย
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">(Metabolic & Body Care)</div>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <span class="font-semibold text-red-700 leading-snug block">
+                                    “กว่า 50% มีภาวะน้ำหนักเกินและอ้วนลงพุง เสี่ยงต่อโรค NCDs สะสม”
+                                </span>
+                                <span class="text-[11px] text-slate-500 mt-1 block">ชายผิดปกติ 75% (21/28 คน) | หญิงผิดปกติ 59.1% (52/88 คน)</span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1.5 text-xs">
+                                    <li class="flex items-center justify-between bg-red-50 px-2.5 py-1 rounded border border-red-100">
+                                        <span class="text-slate-700">BMI เกินเกณฑ์ (ชายเฉลี่ย 25.04 / หญิง 23.06)</span>
+                                        <strong class="text-red-600 font-bold ml-2">53%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">เสี่ยงความดันโลหิตสูง (Pre-HT 54 ราย)</span>
+                                        <strong class="text-slate-900 font-bold ml-2">44%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">รอบเอว/สะโพกเกินเกณฑ์ (ญ 39, ช 5 ราย)</span>
+                                        <strong class="text-slate-900 font-bold ml-2">37.9% (44 ราย)</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">ไขมันไตรกลีเซอไรด์สูง / ชาย &lt;40 ปีไขมันสูง</span>
+                                        <strong class="text-slate-900 font-bold ml-2">27% / 26.52%</strong>
+                                    </li>
+                                </ul>
+                            </td>
+                            <td class="py-4 px-3 align-top text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200">
+                                    <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                                    เฝ้าระวังสูงสุด
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1 text-slate-700 text-xs sm:text-sm list-disc list-inside marker:text-red-500">
+                                    <li>จัดโครงการ <strong class="text-slate-900">"Healthier Organization / SNR Healthy Challenge"</strong> สร้างแรงจูงใจลดรอบเอวและลดไขมันสะสมแบบมีส่วนร่วม</li>
+                                    <li>ดูแลติดตามวัดความดันโลหิตกลุ่มเสี่ยง Pre-HT (54 ราย) ซ้ำทุก 3–6 เดือนอย่างใกล้ชิด</li>
+                                    <li>มุ่งเน้นดูแลกลุ่มชายอายุน้อยกว่า 40 ปี (BMI เฉลี่ย 26.06) และหญิงอายุ 40 ปีขึ้นไป (BMI เฉลี่ย 24.25)</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <!-- Row 2: Occupational Safety -->
+                        <tr class="table-row-item hover:bg-rose-50/30 transition" data-category="critical">
+                            <td class="py-4 px-3 font-bold text-slate-400 text-center align-top">2</td>
+                            <td class="py-4 px-4 align-top">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="shield-alert" class="w-4 h-4 text-rose-600 shrink-0"></i>
+                                    การปกป้องความปลอดภัยและโรคจากการทำงาน
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">(Occupational Health & TB/HBV Protection)</div>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <span class="font-semibold text-rose-700 leading-snug block">
+                                    “เร่งสร้างภูมิคุ้มกันไวรัสตับอักเสบบี & เฝ้าระวังดูแลวัณโรคปอด (TB) ในบุคลากร”
+                                </span>
+                                <span class="text-[11px] text-slate-500 mt-1 block">ปกป้องบุคลากรด่านหน้าจากความเสี่ยงโรคติดเชื้อในโรงพยาบาล</span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1.5 text-xs">
+                                    <li class="flex items-center justify-between bg-rose-50 px-2.5 py-1 rounded border border-rose-100">
+                                        <span class="text-slate-700">ยังไม่มีภูมิคุ้มกันไวรัสบี (ต้องได้รับวัคซีน)</span>
+                                        <strong class="text-rose-600 font-bold ml-2">72.5% (100 ราย)</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-amber-50 px-2.5 py-1 rounded border border-amber-200">
+                                        <span class="text-slate-700">เอกซเรย์ปอดพบติดเชื้อ TB (ปี 68 / ปี 69)</span>
+                                        <strong class="text-rose-700 font-bold ml-2">ปี 68: 1 ราย | ปี 69: 1 ราย</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                                        <span class="text-slate-700">อัตราการติดเชื้อไวรัสตับอักเสบบีปัจจุบัน</span>
+                                        <strong class="text-emerald-600 font-bold ml-2">0% (ปลอดภัย)</strong>
+                                    </li>
+                                </ul>
+                            </td>
+                            <td class="py-4 px-3 align-top text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-200">
+                                    <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                                    เร่งด่วนทันที
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1 text-slate-700 text-xs sm:text-sm list-disc list-inside marker:text-rose-500">
+                                    <li>จัด <strong class="text-slate-900">แคมเปญฉีดวัคซีนป้องกันไวรัสตับอักเสบบี</strong> สนับสนุนให้แก่เจ้าหน้าที่ทั้ง <strong class="text-rose-700">100 ราย</strong> ที่ยังไม่มีภูมิคุ้มกันทันที</li>
+                                    <li><strong class="text-slate-900">ดูแลรักษาและติดตามบุคลากรที่พบการติดเชื้อวัณโรค (TB) ปีละ 1 ราย (ปี 68 และ ปี 69)</strong> อย่างใกล้ชิด พร้อมเข้มงวดมาตรการป้องกันการแพร่กระจายเชื้อทางเดินหายใจและคัดกรองเอกซเรย์ปอดประจำปีครบ 100%</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <!-- Row 3: Physical Fitness & Ergonomics (Year 2568) -->
+                        <tr class="table-row-item hover:bg-amber-50/30 transition" data-category="warning">
+                            <td class="py-4 px-3 font-bold text-slate-400 text-center align-top">3</td>
+                            <td class="py-4 px-4 align-top">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="dumbbell" class="w-4 h-4 text-orange-500 shrink-0"></i>
+                                    การฟื้นฟูสมรรถภาพและสรีระคนทำงาน
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">(Physical Fitness ปี 68)</div>
+                                <span class="inline-block mt-1 text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded">ปี 69 เตรียมจัดต่อเนื่อง</span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <span class="font-semibold text-orange-800 leading-snug block">
+                                    “ไหล่ตึง-หลังตึงจากการทำงาน & บุคลากรหญิงมีมวลกล้ามเนื้อน้อย”
+                                </span>
+                                <span class="text-[11px] text-slate-500 mt-1 block">ผลสำรวจเชิงรุก 116 คน (80% ของบุคลากรทั้งหมด)</span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1.5 text-xs">
+                                    <li class="flex items-center justify-between bg-orange-50 px-2.5 py-1 rounded border border-orange-100">
+                                        <span class="text-slate-700">ยืดหยุ่นไหล่น้อยกว่าปกติ (ช 20, ญ 34 ราย)</span>
+                                        <strong class="text-orange-700 font-bold ml-2">46.6% (54 ราย)</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">ยืดหยุ่นหลังน้อยกว่าปกติ (ช 10, ญ 18 ราย)</span>
+                                        <strong class="text-slate-900 font-bold ml-2">24.8% (28 ราย)</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">มวลกล้ามเนื้อหญิงต่ำกว่าเกณฑ์มาตรฐาน (&lt;29%)</span>
+                                        <strong class="text-rose-600 font-bold ml-2">24.32–25.98%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">ชีพจรหลังออกกำลังกายสูงเกินเกณฑ์ (ช 2, ญ 11)</span>
+                                        <strong class="text-slate-900 font-bold ml-2">13 ราย (11.2%)</strong>
+                                    </li>
+                                </ul>
+                            </td>
+                            <td class="py-4 px-3 align-top text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    ส่งเสริมเชิงรุก
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1 text-slate-700 text-xs sm:text-sm list-disc list-inside marker:text-orange-500">
+                                    <li>จัดกิจกรรม <strong class="text-slate-900">ยืดเหยียดกล้ามเนื้อไหล่และหลังระหว่างวัน (Stretching Break)</strong> ลดความเมื่อยล้าและป้องกันการบาดเจ็บจากการทำงาน</li>
+                                    <li>ส่งเสริมโปรแกรมสร้างเสริมมวลกล้ามเนื้อในบุคลากรหญิง และฟื้นฟูความฟิตหัวใจ-ปอด (Cardio) แก่กลุ่มเสี่ยง 13 ราย</li>
+                                    <li><strong class="text-indigo-700">สนับสนุนการจัดตรวจวัดสมรรถภาพต่อเนื่องในปี 2569</strong> เพื่อประเมินผลลัพธ์สุขภาพ</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <!-- Row 4: Liver, Uric & Nutrition Behavior -->
+                        <tr class="table-row-item hover:bg-amber-50/30 transition" data-category="warning">
+                            <td class="py-4 px-3 font-bold text-slate-400 text-center align-top">4</td>
+                            <td class="py-4 px-4 align-top">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="utensils" class="w-4 h-4 text-amber-500 shrink-0"></i>
+                                    การดูแลตับ ข้อ และโภชนาการที่ดี
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">(Liver, Uric & Healthy Diet)</div>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <span class="font-semibold text-amber-800 leading-snug block">
+                                    “ตับอักเสบแฝง & กรดยูริกสูง สัมพันธ์กับพฤติกรรมอาหารมัน-หวาน-เค็ม”
+                                </span>
+                                <span class="text-[11px] text-slate-500 mt-1 block">พบกลุ่มต้องดูแลเฝ้าระวังโภชนาการพิเศษ 7 ราย (เพศหญิง)</span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1.5 text-xs">
+                                    <li class="flex items-center justify-between bg-amber-50 px-2.5 py-1 rounded border border-amber-100">
+                                        <span class="text-slate-700">ทานมันเกิน (59 ราย) / หวานเกิน (51 ราย)</span>
+                                        <strong class="text-amber-700 font-bold ml-2">50.9% / 44.0%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">ทานเค็มเกิน (51 ราย) / ผักผลไม้น้อย (31 ราย)</span>
+                                        <strong class="text-slate-900 font-bold ml-2">44.0% / 26.7%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">ภาวะตับอักเสบ SGPT สูง (ปี 68)</span>
+                                        <strong class="text-amber-700 font-bold ml-2">23%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">กรดยูริกสูงกว่าเกณฑ์มาตรฐาน</span>
+                                        <strong class="text-slate-900 font-bold ml-2">1 ใน 5 คน (~20%)</strong>
+                                    </li>
+                                </ul>
+                            </td>
+                            <td class="py-4 px-3 align-top text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    เฝ้าระวัง
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1 text-slate-700 text-xs sm:text-sm list-disc list-inside marker:text-amber-500">
+                                    <li>ปรับสภาพแวดล้อมด้านอาหาร: <strong class="text-slate-900">จัดอาหารว่างประชุมเป็นผลไม้สด/เมนูหวานน้อย</strong> และส่งเสริมเมนูสุขภาพในโรงพยาบาล</li>
+                                    <li>สื่อสารสร้างความรอบรู้ในการลดอาหารไขมันสูง ฟรุกโตสสูง และยอดผัก/สัตว์ปีก</li>
+                                    <li>ส่งต่อพบแพทย์และนักโภชนาการเพื่อให้คำปรึกษาดูแลรายบุคคลอย่างใส่ใจ (โดยเฉพาะกลุ่มเฝ้าระวัง 7 ราย)</li>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <!-- Row 5: Positive Trend -->
+                        <tr class="table-row-item hover:bg-emerald-50/30 transition" data-category="good">
+                            <td class="py-4 px-3 font-bold text-slate-400 text-center align-top">5</td>
+                            <td class="py-4 px-4 align-top">
+                                <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <i data-lucide="award" class="w-4 h-4 text-emerald-600 shrink-0"></i>
+                                    ผลสำเร็จและต้นทุนสุขภาพที่ดี
+                                </div>
+                                <div class="text-xs text-slate-500 mt-0.5">(Positive Health Capital & Early Detection)</div>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <span class="font-semibold text-emerald-700 leading-snug block">
+                                    “ภาวะไต ภาวะซีดดีขึ้นชัดเจน แรงบีบมือดีเยี่ยม และระบบคัดกรองปอดช่วยพบเชื้อ TB ได้เร็ว”
+                                </span>
+                                <span class="text-[11px] text-slate-500 mt-1 block">สะท้อนประสิทธิภาพของการตรวจคัดกรองเชิงรุกที่ช่วยให้ดูแลรักษาได้ทันท่วงที</span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1.5 text-xs">
+                                    <li class="flex items-center justify-between bg-emerald-50 px-2.5 py-1 rounded border border-emerald-100">
+                                        <span class="text-slate-700">ค่าไตผิดปกติลดลงเหลือ / ภาวะซีดลดลงเหลือ</span>
+                                        <strong class="text-emerald-700 font-bold ml-2">1.4% / 5.6%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
+                                        <span class="text-slate-700">แรงบีบมือผ่านเกณฑ์มาตรฐาน (112/116 คน)</span>
+                                        <strong class="text-teal-700 font-bold ml-2">96.6%</strong>
+                                    </li>
+                                    <li class="flex items-center justify-between bg-amber-50/70 px-2.5 py-1 rounded border border-amber-200">
+                                        <span class="text-slate-700">คัดกรองเอกซเรย์ปอดพบติดเชื้อ TB เข้าดูแลทันท่วงที</span>
+                                        <strong class="text-amber-800 font-bold ml-2">ปี 68 (1 ราย) / ปี 69 (1 ราย)</strong>
+                                    </li>
+                                </ul>
+                            </td>
+                            <td class="py-4 px-3 align-top text-center">
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                    แนวโน้มดีเยี่ยม
+                                </span>
+                            </td>
+                            <td class="py-4 px-4 align-top">
+                                <ul class="space-y-1 text-slate-700 text-xs sm:text-sm list-disc list-inside marker:text-emerald-500">
+                                    <li>สื่อสารผลสำเร็จของค่าการทำงานของไตและภาวะซีดที่ดีขึ้น เพื่อ <strong class="text-slate-900">สร้างขวัญและกำลังใจแก่บุคลากร</strong></li>
+                                    <li>ยกระดับมาตรการเฝ้าระวังคัดกรองวัณโรคและเอกซเรย์ปอดประจำปีต่อเนื่อง เพื่อค้นหาผู้ติดเชื้อระยะเริ่มต้น (จากที่พบปี 68 จำนวน 1 ราย และปี 69 จำนวน 1 ราย) ให้ได้รับการรักษาและดูแลอย่างปลอดภัย</li>
+                                </ul>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECTION 2: PHYSICAL FITNESS & NUTRITION DEEP DIVE (YEAR 2568) -->
+        <div id="section-fitness" class="p-6 sm:p-8 border-b border-slate-200 bg-gradient-to-b from-indigo-50/40 to-white card-break">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-8 bg-indigo-600 rounded-full"></div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-900">
+                                ผลการดำเนินงานเชิงรุก: การตรวจวัดสมรรถภาพร่างกายและภาวะโภชนาการ (ปี 2568)
+                            </h2>
+                            <span class="bg-teal-100 text-teal-800 border border-teal-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                                ความตั้งใจของคณะกรรมการ HPH & ศูนย์คุณภาพ
+                            </span>
+                            <span class="bg-amber-100 text-amber-800 border border-amber-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                                ปี 2569 เตรียมดำเนินการต่อเนื่อง
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">ดำเนินการวันที่ 26–28 สิงหาคม 2568 เพื่อค้นหาความเสี่ยงรายบุคคลและออกแบบกิจกรรมส่งเสริมสุขภาพที่ตรงจุด | บุคลากรให้ความร่วมมือสูงถึง 80% (116 จาก 145 คน)</p>
+                    </div>
+                </div>
+
+                <!-- Participant Breakdown Badge -->
+                <div class="flex items-center gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm shrink-0">
+                    <div class="flex items-center gap-2 pr-3 border-r border-slate-200">
+                        <div class="bg-indigo-100 text-indigo-700 p-1.5 rounded-lg">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                        </div>
+                        <div>
+                            <div class="text-[11px] text-slate-500">ผู้เข้าร่วมทดสอบ</div>
+                            <div class="text-sm font-bold text-slate-900">116 คน <span class="text-xs font-semibold text-indigo-600">(80%)</span></div>
+                        </div>
+                    </div>
+                    <div class="text-xs space-y-0.5">
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <span class="text-slate-600">ชาย:</span>
+                            <strong class="text-slate-900">28 คน (24.1%)</strong>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-pink-500"></span>
+                            <span class="text-slate-600">หญิง:</span>
+                            <strong class="text-slate-900">88 คน (75.9%)</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3-Column Fitness & Nutrition Infographic Cards -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                
+                <!-- Sub-Card A: Body Composition by Gender & Age -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-blue-100 text-blue-700 p-2 rounded-lg">
+                                    <i data-lucide="scale" class="w-4 h-4"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900">1. ดัชนีมวลกาย & องค์ประกอบร่างกาย</h3>
+                            </div>
+                            <span class="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">เกณฑ์ปกติ BMI 23</span>
+                        </div>
+
+                        <!-- BMI Breakdown Table -->
+                        <div class="mb-3.5">
+                            <div class="text-xs font-semibold text-slate-700 mb-1.5 flex justify-between">
+                                <span>การแปลผลดัชนีมวลกาย (BMI) รายเพศ</span>
+                                <span class="text-slate-400">หน่วย: คน</span>
+                            </div>
+                            <div class="overflow-hidden rounded-lg border border-slate-200 text-xs">
+                                <table class="w-full text-center">
+                                    <thead class="bg-slate-100 text-slate-700 font-semibold">
+                                        <tr>
+                                            <th class="py-1.5 px-2 text-left">เพศ</th>
+                                            <th class="py-1.5 px-1 text-emerald-700">ปกติ</th>
+                                            <th class="py-1.5 px-1 text-amber-700">นน.น้อย</th>
+                                            <th class="py-1.5 px-1 text-orange-600">ท้วม</th>
+                                            <th class="py-1.5 px-1 text-red-600">อ้วน 1</th>
+                                            <th class="py-1.5 px-1 text-rose-800">อ้วน 2</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-200">
+                                        <tr>
+                                            <td class="py-1.5 px-2 text-left font-medium text-blue-800 bg-blue-50/40">ชาย (28)</td>
+                                            <td class="py-1.5 px-1 font-bold text-emerald-600">7 <span class="text-[10px] font-normal">(25%)</span></td>
+                                            <td class="py-1.5 px-1">2</td>
+                                            <td class="py-1.5 px-1">4</td>
+                                            <td class="py-1.5 px-1 font-bold text-red-600">11</td>
+                                            <td class="py-1.5 px-1">2</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="py-1.5 px-2 text-left font-medium text-pink-800 bg-pink-50/40">หญิง (86*)</td>
+                                            <td class="py-1.5 px-1 font-bold text-emerald-600">36 <span class="text-[10px] font-normal">(40.9%)</span></td>
+                                            <td class="py-1.5 px-1">13</td>
+                                            <td class="py-1.5 px-1">12</td>
+                                            <td class="py-1.5 px-1 font-bold text-red-600">17</td>
+                                            <td class="py-1.5 px-1 font-bold text-rose-700">8</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-[10px] text-slate-400 mt-1">*เพศหญิงไม่มีข้อมูล 2 คน | ชายค่าผิดปกติ 21 คน (75%), หญิงค่าผิดปกติ 52 คน (59.1%)</p>
+                        </div>
+
+                        <!-- Age & Muscle/Fat Highlights Table -->
+                        <div class="overflow-hidden rounded-lg border border-slate-200 text-[11px] mb-2.5">
+                            <table class="w-full text-center">
+                                <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-1 px-2 text-left">ตัวชี้วัดเฉลี่ยตามช่วงวัย</th>
+                                        <th class="py-1 px-1">ชาย &lt;40</th>
+                                        <th class="py-1 px-1">ชาย ≥40</th>
+                                        <th class="py-1 px-1">หญิง &lt;40</th>
+                                        <th class="py-1 px-1">หญิง ≥40</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    <tr>
+                                        <td class="py-1 px-2 text-left font-medium text-slate-700">BMI เฉลี่ย (ช 25.04 / ญ 23.06)</td>
+                                        <td class="py-1 px-1 font-bold text-red-600">26.06</td>
+                                        <td class="py-1 px-1 font-semibold text-orange-600">23.68</td>
+                                        <td class="py-1 px-1 text-emerald-600 font-semibold">22.70</td>
+                                        <td class="py-1 px-1 font-bold text-red-600">24.25</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 px-2 text-left font-medium text-slate-700">มวลไขมัน (ช&lt;25%, ญ&lt;35%)</td>
+                                        <td class="py-1 px-1 font-bold text-red-600">26.52%</td>
+                                        <td class="py-1 px-1 text-emerald-600">23.75%</td>
+                                        <td class="py-1 px-1 text-emerald-600">29.40%</td>
+                                        <td class="py-1 px-1 text-emerald-600">32.70%</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 px-2 text-left font-medium text-slate-700">กล้ามเนื้อ (ช31-40, ญ29-35%)</td>
+                                        <td class="py-1 px-1 text-emerald-600">31.28%</td>
+                                        <td class="py-1 px-1 text-emerald-600">31.07%</td>
+                                        <td class="py-1 px-1 font-bold text-amber-600">25.98%</td>
+                                        <td class="py-1 px-1 font-bold text-red-600">24.32%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="bg-rose-50/60 p-2 rounded-lg border border-rose-100 flex items-center justify-between text-xs">
+                            <span class="text-slate-700 font-medium">รอบเอว/สะโพก (WHR) เกินเกณฑ์:</span>
+                            <strong class="text-rose-700">44 คน (หญิง 39 / ชาย 5)</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-Card B: Musculoskeletal & Cardiorespiratory Fitness -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-orange-100 text-orange-700 p-2 rounded-lg">
+                                    <i data-lucide="activity" class="w-4 h-4"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900">2. ความยืดหยุ่น แรงบีบมือ & หัวใจ-ปอด</h3>
+                            </div>
+                            <span class="text-[11px] font-semibold text-orange-700 bg-orange-50 px-2 py-0.5 rounded">ดูแลสรีระคนทำงาน</span>
+                        </div>
+
+                        <div class="space-y-3 text-xs">
+                            <!-- Shoulder Flexibility -->
+                            <div class="bg-orange-50/60 p-3 rounded-xl border border-orange-200/70">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-slate-800">ความยืดหยุ่นไหล่น้อยกว่าปกติ</span>
+                                    <span class="text-sm font-extrabold text-orange-600">54 คน (46.6%)</span>
+                                </div>
+                                <p class="text-[11px] text-slate-600 mb-2">ไหล่ตึงข้างใดข้างหนึ่งหรือทั้งสองข้าง (ปกติ 62 คน: ชาย 8, หญิง 54)</p>
+                                <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div class="bg-white px-2.5 py-1 rounded border border-orange-100 flex justify-between">
+                                        <span>เพศชายไหล่ตึง:</span>
+                                        <strong class="text-orange-700">20 / 28 คน (71.4%)</strong>
+                                    </div>
+                                    <div class="bg-white px-2.5 py-1 rounded border border-orange-100 flex justify-between">
+                                        <span>เพศหญิงไหล่ตึง:</span>
+                                        <strong class="text-orange-700">34 / 88 คน (38.6%)</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Back Flexibility -->
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-slate-800">ความยืดหยุ่นหลังน้อยกว่าปกติ</span>
+                                    <span class="text-sm font-extrabold text-slate-800">28 คน (24.8%)</span>
+                                </div>
+                                <div class="flex justify-between text-[11px] text-slate-600">
+                                    <span>ชายตึง: <strong>10 คน</strong> (ปกติ 16, ไม่ตรวจ 2)</span>
+                                    <span>หญิงตึง: <strong>18 คน</strong> (ปกติ 69, ไม่ตรวจ 1)</span>
+                                </div>
+                            </div>
+
+                            <!-- Heart & Lung + Hand Grip -->
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div class="bg-rose-50/50 p-2.5 rounded-xl border border-rose-100">
+                                    <div class="text-[11px] text-rose-700 font-semibold mb-0.5">หัวใจและปอดหลังออกกำลัง</div>
+                                    <div class="text-base font-extrabold text-rose-600">13 คน (11.2%)</div>
+                                    <div class="text-[10px] text-slate-600">ชีพจรเต้นสูงกว่าปกติ (หญิง 11, ชาย 2)</div>
+                                </div>
+                                <div class="bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
+                                    <div class="text-[11px] text-emerald-700 font-semibold mb-0.5">แรงบีบมือผ่านเกณฑ์ 96.6%</div>
+                                    <div class="text-[11px] font-bold text-emerald-700">ช: 43.1/44.1 | ญ: 26.1/28.0 Kg</div>
+                                    <div class="text-[10px] text-slate-600">น้อยกว่าปกติเพียง 4 คน (หญิง)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-Card C: Nutritional Behavior -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+                            <div class="flex items-center gap-2">
+                                <div class="bg-amber-100 text-amber-700 p-2 rounded-lg">
+                                    <i data-lucide="soup" class="w-4 h-4"></i>
+                                </div>
+                                <h3 class="font-bold text-sm text-slate-900">3. พฤติกรรมการบริโภค (116 คน)</h3>
+                            </div>
+                            <span class="text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded">ข้อมูลโภชนาการ</span>
+                        </div>
+
+                        <!-- Nutrition Table from Page 2 + Narrative from Page 4 -->
+                        <div class="space-y-2.5 text-xs">
+                            <!-- High Fat -->
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="font-semibold text-slate-700">บริโภคของมันมากเกินไป (หญิง 45, ชาย 14)</span>
+                                    <strong class="text-red-600">59 คน (50.9%)</strong>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-red-500 h-full rounded-full" style="width: 50.9%"></div>
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">เกณฑ์ย่อย: ดี 63 | เฝ้าระวัง 8 | แย่ 39 | แย่มาก 5</div>
+                            </div>
+
+                            <!-- High Sweet -->
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="font-semibold text-slate-700">บริโภคของหวานมากเกินไป (หญิง 40, ชาย 11)</span>
+                                    <strong class="text-orange-600">51 คน (44.0%)</strong>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-orange-500 h-full rounded-full" style="width: 44%"></div>
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">เกณฑ์ย่อย: ดี 60 | เฝ้าระวัง 18 | แย่ 32 | แย่มาก 5</div>
+                            </div>
+
+                            <!-- High Salt -->
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="font-semibold text-slate-700">บริโภคของเค็มมากเกินไป (หญิง 38, ชาย 13)</span>
+                                    <strong class="text-amber-600">51 คน (44.0%)</strong>
+                                </div>
+                                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                    <div class="bg-amber-500 h-full rounded-full" style="width: 44%"></div>
+                                </div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">เกณฑ์ย่อย: ดี 15 | เฝ้าระวัง 66 | แย่ 30 | แย่มาก 4</div>
+                            </div>
+
+                            <!-- Low Veggies & High Risk Watch -->
+                            <div class="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2">
+                                <div class="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                                    <div class="text-[10px] text-slate-500">ทานผักและผลไม้น้อยเกินไป</div>
+                                    <div class="text-sm font-bold text-slate-800">31 คน (26.7%)</div>
+                                    <div class="text-[10px] text-slate-500">หญิง 25 / ชาย 6 คน</div>
+                                </div>
+                                <div class="bg-red-50/60 p-2 rounded-lg border border-red-100">
+                                    <div class="text-[10px] text-red-700 font-medium">เฝ้าระวังพฤติกรรมบริโภค</div>
+                                    <div class="text-sm font-bold text-red-600">7 คน (เพศหญิง)</div>
+                                    <div class="text-[10px] text-slate-500">บริโภคทั่วไปแย่ 13 / เฝ้าระวัง 25</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- SECTION 3: INFOGRAPHIC GRID (4 Core Quadrants) -->
+        <div id="section-infographic" class="p-6 sm:p-8 bg-slate-50/50">
+            <div class="flex items-center justify-between gap-3 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-7 bg-indigo-600 rounded-full"></div>
+                    <div>
+                        <h2 class="text-lg sm:text-xl font-bold text-slate-900">
+                            อินโฟกราฟิกสรุปสถานะสุขภาพและแผนดูแลบุคลากร 4 มิติหลัก (Executive Visual Dashboard)
+                        </h2>
+                        <p class="text-xs text-slate-500">สื่อสารข้อมูลสำคัญพร้อมข้อเสนอแนะเชิงนโยบายจากความตั้งใจของคณะทำงาน HPH และศูนย์คุณภาพ</p>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="cards-grid">
+
+                <!-- CARD 1: Metabolic Risks -->
+                <div class="card-item card-break bg-white rounded-2xl border-2 border-red-100 shadow-sm hover:shadow-md transition duration-200 flex flex-col overflow-hidden" data-category="critical">
+                    <!-- Top Status Bar -->
+                    <div class="bg-gradient-to-r from-red-600 to-rose-500 px-6 py-3 flex items-center justify-between text-white">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="heart-pulse" class="w-5 h-5"></i>
+                            <span class="font-semibold text-sm tracking-wide">1. ภัยเงียบสุขภาพ & สรีระ (Metabolic & Body Risks)</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 bg-white text-red-700 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                            <span class="w-2 h-2 rounded-full bg-red-600 animate-ping"></span>
+                            🔴 เฝ้าระวังสูงสุด
+                        </span>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <!-- Headline -->
+                            <div class="mb-5">
+                                <span class="text-xs font-semibold text-red-600 uppercase tracking-wider">ประเด็นไฮไลต์เพื่อการดูแล</span>
+                                <h3 class="text-xl font-bold text-slate-900 mt-0.5 leading-snug">
+                                    “กว่า 50% น้ำหนักเกินเกณฑ์และอ้วนลงพุง เสี่ยง NCDs สะสม”
+                                </h3>
+                            </div>
+
+                            <!-- Big Numbers -->
+                            <div class="space-y-3.5 mb-5">
+                                <!-- Stat 1 -->
+                                <div class="bg-red-50/60 p-4 rounded-xl border border-red-100">
+                                    <div class="flex justify-between items-baseline mb-1.5">
+                                        <div>
+                                            <span class="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                                                <i data-lucide="scale" class="w-4 h-4 text-red-500"></i>
+                                                บุคลากรดัชนีมวลกาย (BMI) เกินเกณฑ์มาตรฐาน
+                                            </span>
+                                            <span class="text-[11px] text-slate-500 block mt-0.5">ผลวัดสมรรถภาพปี 68: ชายผิดปกติ 75% (เฉลี่ย 25.04) | หญิงผิดปกติ 59.1%</span>
+                                        </div>
+                                        <span class="text-3xl font-extrabold text-red-600">53%</span>
+                                    </div>
+                                    <div class="w-full bg-red-200/60 rounded-full h-2.5 overflow-hidden">
+                                        <div class="bg-red-600 h-2.5 rounded-full progress-bar-animate" style="width: 53%"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Stat 2 & 3 Grid -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-xs font-medium text-slate-600">เสี่ยงความดันโลหิตสูง</span>
+                                            <span class="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded">Pre-HT 54 ราย</span>
+                                        </div>
+                                        <div class="text-2xl font-bold text-slate-800 mb-1">44%</div>
+                                        <div class="text-[11px] text-slate-500 mb-1.5">ชีพจรหลังออกกำลังสูง 13 ราย</div>
+                                        <div class="w-full bg-slate-200 rounded-full h-1.5">
+                                            <div class="bg-rose-500 h-1.5 rounded-full" style="width: 44%"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <span class="text-xs font-medium text-slate-600">ไขมันไตรกลีเซอไรด์สูง</span>
+                                            <span class="text-xs font-bold bg-rose-100 text-rose-800 px-2 py-0.5 rounded">WHR เกิน 44 ราย</span>
+                                        </div>
+                                        <div class="text-2xl font-bold text-slate-800 mb-1">27%</div>
+                                        <div class="text-[11px] text-slate-500 mb-1.5">อ้วนลงพุง 37.9% (ญ 39, ช 5)</div>
+                                        <div class="w-full bg-slate-200 rounded-full h-1.5">
+                                            <div class="bg-rose-400 h-1.5 rounded-full" style="width: 27%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Plan -->
+                        <div class="bg-slate-900 text-white p-5 rounded-xl mt-2 relative overflow-hidden">
+                            <div class="flex items-center gap-2 text-rose-300 font-semibold text-xs uppercase tracking-wider mb-2.5">
+                                <i data-lucide="heart-handshake" class="w-4 h-4"></i>
+                                แผนสนับสนุนสุขภาวะโดยคณะทำงาน (Supportive Action Plan)
+                            </div>
+                            <ul class="space-y-2 text-sm text-slate-200">
+                                <li class="flex items-start gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                                    <span>จัดโครงการ <strong class="text-white">"Healthier Organization"</strong> แข่งขันลดรอบเอว/ลดน้ำหนัก และสร้างกล้ามเนื้อ</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                                    <span>ปรับอาหารว่างในที่ประชุมเป็นผลไม้สด/หวานน้อย และ <strong class="text-white">ติดตามกลุ่ม Pre-HT (54 ราย) ซ้ำทุก 3–6 เดือน</strong></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2: Occupational Safety -->
+                <div class="card-item card-break bg-white rounded-2xl border-2 border-red-100 shadow-sm hover:shadow-md transition duration-200 flex flex-col overflow-hidden" data-category="critical">
+                    <!-- Top Status Bar -->
+                    <div class="bg-gradient-to-r from-rose-600 to-orange-600 px-6 py-3 flex items-center justify-between text-white">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                            <span class="font-semibold text-sm tracking-wide">2. ความปลอดภัยและโรคติดเชื้อจากการทำงาน (Occupational Safety)</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 bg-white text-rose-700 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                            <span class="w-2 h-2 rounded-full bg-rose-600 animate-ping"></span>
+                            🔴 เร่งด่วนทันที
+                        </span>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <!-- Headline -->
+                            <div class="mb-4">
+                                <span class="text-xs font-semibold text-rose-600 uppercase tracking-wider">ประเด็นไฮไลต์เพื่อการปกป้องคนทำงาน</span>
+                                <h3 class="text-xl font-bold text-slate-900 mt-0.5 leading-snug">
+                                    “เร่งสร้างภูมิคุ้มกันไวรัสตับอักเสบบี & เฝ้าระวังการติดเชื้อวัณโรค (TB)”
+                                </h3>
+                            </div>
+
+                            <!-- Big Numbers -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
+                                <!-- Urgent Stat: HBV -->
+                                <div class="bg-rose-50/70 p-3.5 rounded-xl border border-rose-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between text-rose-700 mb-1">
+                                            <span class="text-xs font-bold uppercase">ภูมิคุ้มกันไวรัสตับอักเสบบี</span>
+                                            <i data-lucide="syringe" class="w-4 h-4"></i>
+                                        </div>
+                                        <div class="text-3xl font-extrabold text-rose-600 my-0.5">72.5%</div>
+                                        <div class="text-xs font-semibold text-slate-800">ยังไม่มีภูมิคุ้มกัน (ไม่พบติดเชื้อ 0%)</div>
+                                    </div>
+                                    <div class="mt-2.5 pt-2 border-t border-rose-200/60 flex items-center justify-between">
+                                        <span class="text-xs text-slate-600">เป้าหมายรับวัคซีน:</span>
+                                        <span class="text-xs font-bold bg-rose-600 text-white px-2.5 py-0.5 rounded-md">100 ราย</span>
+                                    </div>
+                                </div>
+
+                                <!-- Urgent Stat: TB Chest X-ray -->
+                                <div class="bg-amber-50/80 p-3.5 rounded-xl border border-amber-200 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center justify-between text-amber-800 mb-1">
+                                            <span class="text-xs font-bold uppercase">ผลเอกซเรย์ปอด (คัดกรอง TB)</span>
+                                            <i data-lucide="scan-line" class="w-4 h-4"></i>
+                                        </div>
+                                        <div class="flex items-baseline gap-2 my-0.5">
+                                            <span class="text-2xl font-extrabold text-rose-600">พบติดเชื้อ TB</span>
+                                        </div>
+                                        <div class="text-xs font-semibold text-slate-800">ปี 2568: 1 ราย | ปี 2569: 1 ราย</div>
+                                    </div>
+                                    <div class="mt-2.5 pt-2 border-t border-amber-200/60 flex items-center justify-between">
+                                        <span class="text-xs text-slate-600">สถานะการดูแล:</span>
+                                        <span class="text-xs font-bold bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md">รักษา & เฝ้าระวังใกล้ชิด</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Visual Proportion Bar -->
+                            <div class="mb-4 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                                <div class="flex justify-between text-xs font-medium mb-1">
+                                    <span class="text-rose-600 font-semibold">ยังไม่มีภูมิคุ้มกันไวรัสบี 72.5% (100 ราย)</span>
+                                    <span class="text-emerald-600 font-semibold">มีภูมิคุ้มกันแล้ว 27.5%</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-emerald-500 rounded-full overflow-hidden flex">
+                                    <div class="bg-rose-500 h-full" style="width: 72.5%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Plan -->
+                        <div class="bg-slate-900 text-white p-5 rounded-xl mt-2">
+                            <div class="flex items-center gap-2 text-orange-300 font-semibold text-xs uppercase tracking-wider mb-2">
+                                <i data-lucide="shield-plus" class="w-4 h-4"></i>
+                                แผนสนับสนุนสุขภาวะโดยคณะทำงาน (Supportive Action Plan)
+                            </div>
+                            <ul class="space-y-1.5 text-sm text-slate-200">
+                                <li class="flex items-start gap-2">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-rose-400 shrink-0 mt-0.5"></i>
+                                    <span>จัด <strong class="text-white underline decoration-rose-400 decoration-2 underline-offset-4">แคมเปญฉีดวัคซีนป้องกันไวรัสตับอักเสบบี</strong> แก่เจ้าหน้าที่ที่ยังไม่มีภูมิคุ้มกันทั้ง <strong class="text-amber-300">100 ราย</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                                    <span>ดูแลรักษาบุคลากรที่ <strong class="text-white">พบติดเชื้อวัณโรค (TB) ปี 68 (1 ราย) และ ปี 69 (1 ราย)</strong> อย่างเต็มที่ พร้อมเข้มงวดมาตรการป้องกันการแพร่กระจายเชื้อ</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 3: Liver, Uric, Nutrition & Flexibility -->
+                <div class="card-item card-break bg-white rounded-2xl border-2 border-amber-100 shadow-sm hover:shadow-md transition duration-200 flex flex-col overflow-hidden" data-category="warning">
+                    <!-- Top Status Bar -->
+                    <div class="bg-gradient-to-r from-amber-500 to-yellow-500 px-6 py-3 flex items-center justify-between text-slate-950">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="flame" class="w-5 h-5 text-slate-900"></i>
+                            <span class="font-bold text-sm tracking-wide">3. สุขภาพตับ ข้อ โภชนาการ & ความยืดหยุ่น</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 bg-white text-amber-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                            🟡 เฝ้าระวังและฟื้นฟู
+                        </span>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <!-- Headline -->
+                            <div class="mb-5">
+                                <span class="text-xs font-semibold text-amber-600 uppercase tracking-wider">ประเด็นไฮไลต์เพื่อการปรับพฤติกรรม</span>
+                                <h3 class="text-xl font-bold text-slate-900 mt-0.5 leading-snug">
+                                    “ตับอักเสบแฝง & กรดยูริกสูง จากอาหารมัน-หวาน-เค็ม และภาวะไหล่ตึง”
+                                </h3>
+                            </div>
+
+                            <!-- Big Numbers -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5">
+                                <!-- SGPT Liver & Uric -->
+                                <div class="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200/80">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="text-xs font-bold text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded">ผลเลือดเฝ้าระวัง</span>
+                                        <i data-lucide="activity" class="w-4 h-4 text-amber-600"></i>
+                                    </div>
+                                    <div class="flex items-baseline gap-2 my-1">
+                                        <span class="text-2xl font-extrabold text-amber-600">23%</span>
+                                        <span class="text-xs font-semibold text-slate-700">SGPT ตับอักเสบ (ปี 68)</span>
+                                    </div>
+                                    <div class="pt-2 mt-2 border-t border-amber-200/60 flex items-center justify-between text-xs">
+                                        <span class="text-slate-600">กรดยูริกสูงเกินเกณฑ์:</span>
+                                        <strong class="text-amber-900">1 ใน 5 คน (~20%)</strong>
+                                    </div>
+                                </div>
+
+                                <!-- Nutrition & Flexibility -->
+                                <div class="bg-orange-50/70 p-3.5 rounded-xl border border-orange-200/80 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex justify-between items-start mb-1">
+                                            <span class="text-xs font-bold text-orange-900 bg-orange-200/70 px-2 py-0.5 rounded">สมรรถภาพ & โภชนาการ ปี 68</span>
+                                        </div>
+                                        <div class="flex items-baseline gap-2 my-1">
+                                            <span class="text-2xl font-extrabold text-orange-600">46.6%</span>
+                                            <span class="text-xs font-semibold text-slate-700">ไหล่ตึง 54 ราย (หลังตึง 28 ราย)</span>
+                                        </div>
+                                    </div>
+                                    <div class="pt-2 mt-2 border-t border-orange-200/60 flex items-center justify-between text-xs">
+                                        <span class="text-slate-600">ทานมันเกิน 51% | หวาน/เค็มเกิน:</span>
+                                        <strong class="text-orange-900">44% (51 ราย)</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Plan -->
+                        <div class="bg-slate-900 text-white p-5 rounded-xl mt-2">
+                            <div class="flex items-center gap-2 text-amber-300 font-semibold text-xs uppercase tracking-wider mb-2.5">
+                                <i data-lucide="utensils" class="w-4 h-4"></i>
+                                แผนสนับสนุนสุขภาวะโดยคณะทำงาน (Supportive Action Plan)
+                            </div>
+                            <ul class="space-y-2 text-sm text-slate-200">
+                                <li class="flex items-start gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                                    <span>รณรงค์ลดอาหารไขมันสูง ฟรุกโตสสูง และยอดผัก/สัตว์ปีก พร้อม <strong class="text-white">ส่งต่อพบแพทย์แนะนำโภชนาการรายบุคคล</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                                    <span>จัดโปรแกรมยืดเหยียดกล้ามเนื้อไหล่-หลัง และ <strong class="text-amber-300">เดินหน้าจัดตรวจสมรรถภาพต่อเนื่องในปี 2569</strong></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 4: Positive Trend -->
+                <div class="card-item card-break bg-white rounded-2xl border-2 border-emerald-100 shadow-sm hover:shadow-md transition duration-200 flex flex-col overflow-hidden" data-category="good">
+                    <!-- Top Status Bar -->
+                    <div class="bg-gradient-to-r from-emerald-600 to-teal-500 px-6 py-3 flex items-center justify-between text-white">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="award" class="w-5 h-5"></i>
+                            <span class="font-semibold text-sm tracking-wide">4. ผลสำเร็จด้านสุขภาพ & การคัดกรองเชิงรุก (Positive Health Trend)</span>
+                        </div>
+                        <span class="inline-flex items-center gap-1.5 bg-white text-emerald-800 text-xs font-bold px-3 py-1 rounded-full shadow-sm">
+                            🟢 แนวโน้มดีเยี่ยม
+                        </span>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <!-- Headline -->
+                            <div class="mb-5">
+                                <span class="text-xs font-semibold text-emerald-600 uppercase tracking-wider">ความภาคภูมิใจในการดูแลบุคลากร</span>
+                                <h3 class="text-xl font-bold text-slate-900 mt-0.5 leading-snug">
+                                    “สุขภาพไตและภาวะซีดดีขึ้นชัดเจน แรงบีบมือดีเยี่ยม และคัดกรอง TB ได้เร็ว”
+                                </h3>
+                            </div>
+
+                            <!-- Big Numbers (3 Columns) -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+                                <!-- Kidney & Anemia -->
+                                <div class="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200 text-center flex flex-col justify-center">
+                                    <div class="mx-auto bg-emerald-100 text-emerald-700 p-2 rounded-full mb-1.5">
+                                        <i data-lucide="trending-down" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="text-xl font-extrabold text-emerald-600">1.4% / 5.6%</div>
+                                    <div class="text-xs font-bold text-slate-800 mt-0.5">ค่าไตผิดปกติ / ภาวะซีด</div>
+                                    <span class="text-[10px] text-emerald-700 font-medium">ลดลงอย่างชัดเจน</span>
+                                </div>
+
+                                <!-- Grip Strength -->
+                                <div class="bg-emerald-50/40 p-3.5 rounded-xl border border-emerald-200/70 text-center flex flex-col justify-center">
+                                    <div class="mx-auto bg-teal-100 text-teal-700 p-2 rounded-full mb-1.5">
+                                        <i data-lucide="biceps-flexed" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="text-2xl font-extrabold text-teal-600">96.6%</div>
+                                    <div class="text-xs font-bold text-slate-800 mt-0.5">แรงบีบมือผ่านเกณฑ์</div>
+                                    <span class="text-[10px] text-slate-500">ผ่าน 112 จาก 116 คน</span>
+                                </div>
+
+                                <!-- Early TB Detection via Chest X-ray -->
+                                <div class="bg-amber-50/60 p-3.5 rounded-xl border border-amber-200 text-center flex flex-col justify-center">
+                                    <div class="mx-auto bg-amber-100 text-amber-700 p-2 rounded-full mb-1.5">
+                                        <i data-lucide="wind" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="text-base font-extrabold text-amber-800">ปี 68: 1 | ปี 69: 1</div>
+                                    <div class="text-xs font-bold text-slate-800 mt-0.5">เอกซเรย์ปอดพบติดเชื้อ TB</div>
+                                    <span class="text-[10px] text-amber-800 font-medium">ค้นพบเร็ว เข้าสู่การรักษาทันที</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Plan -->
+                        <div class="bg-slate-900 text-white p-5 rounded-xl mt-2">
+                            <div class="flex items-center gap-2 text-emerald-300 font-semibold text-xs uppercase tracking-wider mb-2.5">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                แผนสนับสนุนสุขภาวะโดยคณะทำงาน (Supportive Action Plan)
+                            </div>
+                            <ul class="space-y-2 text-sm text-slate-200">
+                                <li class="flex items-start gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                                    <span>สื่อสารผลสำเร็จของภาวะไตและภาวะซีดที่ดีขึ้น เพื่อ <strong class="text-white">สร้างขวัญและกำลังใจแก่บุคลากร</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                                    <span>คงมาตรการคัดกรองวัณโรคและเอกซเรย์ปอดประจำปีอย่างเข้มข้น เพื่อดูแลรักษาผู้ติดเชื้อ (ปีละ 1 ราย) และป้องกันการแพร่เชื้อในองค์กร</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Executive Footer / Roadmap Summary -->
+        <div class="bg-slate-100 px-8 py-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 card-break">
+            <div class="flex items-start sm:items-center gap-2 font-medium text-slate-800">
+                <i data-lucide="heart-handshake" class="w-4 h-4 text-teal-600 shrink-0 mt-0.5 sm:mt-0"></i>
+                <span>พันธกิจเร่งด่วนเพื่อบุคลากร (Quick Wins): <strong>1. ฉีดวัคซีนตับอักเสบบี (100 ราย) & ดูแลรักษา TB (ปี 68: 1 ราย / ปี 69: 1 ราย)</strong> | <strong>2. ลดหวาน-มัน-เค็ม & ติดตาม Pre-HT (54 ราย)</strong> | <strong>3. ฟื้นฟูไหล่ตึง (54 ราย) & ตรวจสมรรถภาพปี 2569</strong></span>
+            </div>
+            <div class="text-slate-500 shrink-0 font-semibold">
+                ด้วยความปรารถนาดีจาก คณะกรรมการ HPH และศูนย์คุณภาพ โรงพยาบาลศรีณรงค์
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Hidden 16:9 Slide Deck Staging Area for PowerPoint-Ready PDF Rendering -->
+    <div id="ppt-slide-stage" aria-hidden="true"></div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // CSV File Reader so user can verify/sync exact cells from local CSV file
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contents = e.target.result;
+                const banner = document.getElementById('csv-sync-banner');
+                const preview = document.getElementById('csv-raw-preview');
+                const summary = document.getElementById('csv-sync-summary');
+
+                if (banner && preview) {
+                    const lines = contents.split(/\r?\n/).filter(line => line.trim() !== '');
+                    let html = '<table class="w-full text-left border-collapse">';
+                    lines.forEach((line, idx) => {
+                        const cols = line.split(',');
+                        html += `<tr class="${idx === 0 ? 'bg-teal-800 font-bold text-white' : 'border-b border-slate-700 text-slate-200'}">`;
+                        cols.forEach(col => {
+                            html += `<td class="p-1.5 border-r border-slate-700">${col.replace(/^"|"$/g, '')}</td>`;
+                        });
+                        html += '</tr>';
+                    });
+                    html += '</table>';
+                    preview.innerHTML = html;
+                    summary.innerText = `อ่านไฟล์ "${file.name}" สำเร็จ (${lines.length} แถว) — คุณสามารถคัดลอกข้อความหรือกดปุ่ม "แก้ไขตัวเลขบนจอ" เพื่อปรับปรุงจุดที่ต้องการเพิ่มเติมได้ทันที`;
+                    banner.classList.remove('hidden');
+                }
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        // Track current active view mode & edit mode
+        let currentViewMode = 'both';
+        let currentFilterCategory = 'all';
+        let isEditMode = false;
+
+        // Toggle inline editing so the user can tweak any number or text directly before exporting PDF
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const captureArea = document.getElementById('report-capture-area');
+            const btn = document.getElementById('edit-mode-btn');
+            const label = document.getElementById('edit-mode-label');
+
+            if (isEditMode) {
+                captureArea.setAttribute('contenteditable', 'true');
+                captureArea.classList.add('ring-4', 'ring-indigo-400/50');
+                btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-200');
+                btn.classList.add('bg-amber-500', 'text-white', 'border-amber-600', 'shadow-sm');
+                label.innerText = 'เสร็จสิ้นการแก้ไข';
+            } else {
+                captureArea.setAttribute('contenteditable', 'false');
+                captureArea.classList.remove('ring-4', 'ring-indigo-400/50');
+                btn.classList.add('bg-indigo-50', 'text-indigo-700', 'border-indigo-200');
+                btn.classList.remove('bg-amber-500', 'text-white', 'border-amber-600', 'shadow-sm');
+                label.innerText = 'แก้ไขตัวเลขบนจอ';
+            }
+        }
+
+        const viewLabels = {
+            'both': 'ทั้งหมด 5 หน้า',
+            'table': 'เฉพาะตาราง 2 หน้า',
+            'infographic': 'อินโฟกราฟิก 2 หน้า',
+            'fitness': 'สมรรถภาพ 1 หน้า'
+        };
+
+        const fileNames = {
+            'both': 'สไลด์นำเสนอผู้บริหาร_รพ_ศรีณรงค์_16x9_ฉบับเต็ม.pdf',
+            'table': 'สไลด์ตารางสรุปภาวะสุขภาพ_รพ_ศรีณรงค์_16x9.pdf',
+            'infographic': 'สไลด์อินโฟกราฟิกสุขภาพ_4_มิติ_รพ_ศรีณรงค์_16x9.pdf',
+            'fitness': 'สไลด์สมรรถภาพร่างกายและโภชนาการ_ปี68_รพ_ศรีณรงค์_16x9.pdf'
+        };
+
+        // Switch between views
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const sectionTable = document.getElementById('section-table');
+            const sectionInfo = document.getElementById('section-infographic');
+            const sectionFitness = document.getElementById('section-fitness');
+            const labelEl = document.getElementById('current-view-label');
+            
+            if (labelEl && viewLabels[mode]) {
+                labelEl.innerText = viewLabels[mode];
+            }
+
+            const views = {
+                'both': document.getElementById('view-both'),
+                'table': document.getElementById('view-table'),
+                'infographic': document.getElementById('view-infographic'),
+                'fitness': document.getElementById('view-fitness')
+            };
+
+            Object.values(views).forEach(btn => {
+                if (btn) {
+                    btn.classList.remove('bg-white', 'text-blue-700', 'shadow-sm', 'font-semibold');
+                    btn.classList.add('text-slate-600', 'font-medium');
+                }
+            });
+
+            if (views[mode]) {
+                views[mode].classList.add('bg-white', 'text-blue-700', 'shadow-sm', 'font-semibold');
+                views[mode].classList.remove('text-slate-600', 'font-medium');
+            }
+
+            if (mode === 'both') {
+                sectionTable.style.display = 'block';
+                sectionFitness.style.display = 'block';
+                sectionInfo.style.display = 'block';
+            } else if (mode === 'table') {
+                sectionTable.style.display = 'block';
+                sectionFitness.style.display = 'none';
+                sectionInfo.style.display = 'none';
+            } else if (mode === 'infographic') {
+                sectionTable.style.display = 'none';
+                sectionFitness.style.display = 'none';
+                sectionInfo.style.display = 'block';
+            } else if (mode === 'fitness') {
+                sectionTable.style.display = 'none';
+                sectionFitness.style.display = 'block';
+                sectionInfo.style.display = 'none';
+            }
+        }
+
+        // Toggle PDF dropdown menu
+        function togglePdfMenu(event) {
+            if (event) event.stopPropagation();
+            const menu = document.getElementById('pdf-dropdown-menu');
+            if (menu) {
+                menu.classList.toggle('hidden');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const wrapper = document.getElementById('pdf-dropdown-wrapper');
+            const menu = document.getElementById('pdf-dropdown-menu');
+            if (wrapper && menu && !wrapper.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        // Helper: Create compact 16:9 slide header bar
+        function createSlideHeader(slideTitle, slideSubtitle, pageNum, totalPages) {
+            return `
+                <div class="bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 text-white px-8 py-4 flex items-center justify-between shrink-0 border-b border-blue-900">
+                    <div class="flex items-center gap-3.5">
+                        <div class="bg-blue-500/20 border border-blue-400/30 text-blue-300 px-3 py-1.5 rounded-lg text-xs font-bold">
+                            รพ.ศรีณรงค์ (HPH & ศูนย์คุณภาพ)
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white tracking-tight">${slideTitle}</h2>
+                            <p class="text-xs text-slate-300">${slideSubtitle}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-3 bg-white/10 px-3.5 py-1.5 rounded-lg border border-white/10 text-xs">
+                            <span>ตรวจสมรรถภาพ ปี 68: <strong class="text-sky-300">80% (116/145 คน)</strong></span>
+                            <span class="text-white/30">|</span>
+                            <span>วิกฤต: <strong class="text-red-400">2 หมวด</strong></span>
+                            <span class="text-white/30">|</span>
+                            <span>เฝ้าระวัง: <strong class="text-amber-300">3 หมวด</strong></span>
+                        </div>
+                        <div class="bg-blue-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm">
+                            สไลด์ ${pageNum} / ${totalPages}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper: Create compact 16:9 slide footer bar
+        function createSlideFooter() {
+            return `
+                <div class="bg-slate-100 px-8 py-2.5 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600 shrink-0">
+                    <div class="font-medium text-slate-800">
+                        <strong>พันธกิจเร่งด่วน (Quick Wins):</strong> 1. วัคซีนตับอักเสบบี (100 ราย) & ดูแล TB (ปี 68: 1 / ปี 69: 1 ราย) &nbsp;|&nbsp; 2. ลดหวาน-มัน-เค็ม & ติดตาม Pre-HT (54 ราย) &nbsp;|&nbsp; 3. แก้ไหล่ตึง (54 ราย) & ตรวจสมรรถภาพปี 69
+                    </div>
+                    <div class="text-slate-500 font-semibold shrink-0">
+                        คณะกรรมการ HPH และศูนย์คุณภาพ โรงพยาบาลศรีณรงค์
+                    </div>
+                </div>
+            `;
+        }
+
+        // Build 16:9 Widescreen Slides dynamically according to requested mode
+        function buildPresentationSlides(targetMode) {
+            const stage = document.getElementById('ppt-slide-stage');
+            stage.innerHTML = '';
+
+            const slideDefinitions = [];
+
+            // 1. Table Slides (Split into 2 spacious slides of 2-3 rows each so font size is large & never clipped!)
+            if (targetMode === 'both' || targetMode === 'table') {
+                const originalTable = document.getElementById('executive-table');
+                const theadHtml = originalTable.querySelector('thead').outerHTML;
+                const visibleRows = Array.from(originalTable.querySelectorAll('tbody tr.table-row-item')).filter(
+                    row => row.style.display !== 'none'
+                );
+
+                // Group table rows into chunks of up to 3 rows per slide for large, crisp typography
+                const chunkSize = visibleRows.length > 3 ? 3 : visibleRows.length;
+                for (let i = 0; i < visibleRows.length; i += chunkSize) {
+                    const rowChunk = visibleRows.slice(i, i + chunkSize);
+                    const rowsHtml = rowChunk.map(r => r.outerHTML).join('');
+                    const totalTableSlides = Math.ceil(visibleRows.length / chunkSize);
+                    const currentTablePart = Math.floor(i / chunkSize) + 1;
+                    const partTitle = totalTableSlides > 1 ? ` (ส่วนที่ ${currentTablePart}/${totalTableSlides})` : '';
+
+                    slideDefinitions.push({
+                        title: `ตารางสรุปผลการตรวจสุขภาพ สมรรถภาพ และแผนสนับสนุนสุขภาวะ${partTitle}`,
+                        subtitle: 'บูรณาการผลตรวจสุขภาพประจำปี (ปี 2568–2569) และผลทดสอบสมรรถภาพร่างกาย & โภชนาการ (ปี 2568)',
+                        bodyHtml: `
+                            <div class="px-8 py-3 bg-teal-50/90 border-b border-teal-200 text-sm text-slate-800 leading-relaxed shrink-0">
+                                <strong class="text-teal-900">เจตนารมณ์คณะทำงาน HPH & ศูนย์คุณภาพ:</strong> มุ่งดูแลบุคลากรแบบองค์รวม ตั้งแต่การคัดกรองเอกซเรย์ปอดที่ช่วยตรวจพบผู้ติดเชื้อวัณโรค (TB) ปี 68 (1 ราย) และ ปี 69 (1 ราย) เข้าสู่การรักษาอย่างปลอดภัย การเร่งฉีดวัคซีนไวรัสตับอักเสบบี (100 ราย) ไปจนถึงการแก้ไขปัญหาโภชนาการ อ้วนลงพุง (37.9%) และภาวะไหล่ตึงจากการทำงาน (46.6%)
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col justify-start overflow-hidden bg-white">
+                                <div class="rounded-xl border border-slate-300 overflow-hidden shadow-sm">
+                                    <table class="w-full text-left border-collapse">
+                                        ${theadHtml}
+                                        <tbody class="divide-y divide-slate-200 text-base">
+                                            ${rowsHtml}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        `
+                    });
+                }
+            }
+
+            // 2. Physical Fitness & Nutrition Slide (Year 2568)
+            if (targetMode === 'both' || targetMode === 'fitness') {
+                const fitnessCardsGrid = document.querySelector('#section-fitness .grid');
+                slideDefinitions.push({
+                    title: 'ผลการดำเนินงานเชิงรุก: สมรรถภาพร่างกายและภาวะโภชนาการ (ปี 2568)',
+                    subtitle: 'ดำเนินการ 26–28 ส.ค. 2568 | ผู้เข้าร่วม 116 จาก 145 คน (80% : ชาย 28, หญิง 88) | ปี 2569 เตรียมดำเนินการต่อเนื่อง',
+                    bodyHtml: `
+                        <div class="p-7 flex-1 flex flex-col justify-center bg-gradient-to-b from-indigo-50/40 to-white overflow-hidden">
+                            ${fitnessCardsGrid ? fitnessCardsGrid.outerHTML : ''}
+                        </div>
+                    `
+                });
+            }
+
+            // 3. Infographic 4 Quadrants (Split into 2 Widescreen Slides of 2 Cards each for high readability)
+            if (targetMode === 'both' || targetMode === 'infographic') {
+                const allCards = Array.from(document.querySelectorAll('#cards-grid .card-item')).filter(
+                    card => card.style.display !== 'none'
+                );
+
+                // Group visible cards into pairs (2 cards per 16:9 slide)
+                for (let i = 0; i < allCards.length; i += 2) {
+                    const pair = allCards.slice(i, i + 2);
+                    const cardsHtml = pair.map(c => {
+                        const clone = c.cloneNode(true);
+                        clone.classList.add('h-full');
+                        return clone.outerHTML;
+                    }).join('');
+
+                    const partLabel = allCards.length > 2 ? ` (ส่วนที่ ${Math.floor(i / 2) + 1}/${Math.ceil(allCards.length / 2)})` : '';
+                    slideDefinitions.push({
+                        title: `อินโฟกราฟิกสรุปสถานะสุขภาพและแผนดูแลบุคลากร 4 มิติหลัก${partLabel}`,
+                        subtitle: 'สื่อสารข้อมูลสำคัญพร้อมแผนสนับสนุนสุขภาวะโดยคณะกรรมการ HPH และศูนย์คุณภาพ โรงพยาบาลศรีณรงค์',
+                        bodyHtml: `
+                            <div class="p-7 flex-1 grid ${pair.length === 1 ? 'grid-cols-1 max-w-4xl mx-auto w-full' : 'grid-cols-2'} gap-6 items-stretch bg-slate-50/60 overflow-hidden">
+                                ${cardsHtml}
+                            </div>
+                        `
+                    });
+                }
+            }
+
+            const totalSlides = slideDefinitions.length;
+            const slideElements = [];
+
+            slideDefinitions.forEach((def, idx) => {
+                const slideEl = document.createElement('div');
+                slideEl.className = 'ppt-slide-frame';
+                slideEl.innerHTML = `
+                    ${createSlideHeader(def.title, def.subtitle, idx + 1, totalSlides)}
+                    <div class="flex-1 flex flex-col justify-between overflow-hidden">
+                        ${def.bodyHtml}
+                    </div>
+                    ${createSlideFooter()}
+                `;
+                stage.appendChild(slideEl);
+                slideElements.push(slideEl);
+            });
+
+            // Re-render Lucide icons inside staged slides
+            lucide.createIcons();
+            return slideElements;
+        }
+
+        // Generate 16:9 Widescreen PowerPoint-ready PDF using html2canvas + jsPDF
+        async function downloadPDFByMode(requestedMode) {
+            const menu = document.getElementById('pdf-dropdown-menu');
+            if (menu) menu.classList.add('hidden');
+
+            const targetMode = requestedMode === 'current' ? currentViewMode : requestedMode;
+
+            const overlay = document.getElementById('pdf-loading-overlay');
+            const titleEl = document.getElementById('pdf-loading-title');
+            const subtitleEl = document.getElementById('pdf-loading-subtitle');
+
+            if (overlay) {
+                titleEl.innerText = `กำลังสร้างสไลด์ PDF 16:9 (${viewLabels[targetMode] || 'นำเสนอ'})...`;
+                subtitleEl.innerText = 'กำลังจัดวางองค์ประกอบขนาด Widescreen (1920x1080) สำหรับเปิดนำเสนอ';
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            }
+
+            try {
+                // Build dedicated 16:9 slides in offscreen stage
+                const slides = buildPresentationSlides(targetMode);
+
+                // Wait briefly for fonts & icons to render
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                if (window.jspdf && window.jspdf.jsPDF && typeof html2canvas !== 'undefined') {
+                    const { jsPDF } = window.jspdf;
+                    // Create 16:9 Widescreen PDF (297mm x 167.06mm)
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'mm',
+                        format: [297, 167.06]
+                    });
+
+                    for (let i = 0; i < slides.length; i++) {
+                        if (subtitleEl) {
+                            subtitleEl.innerText = `กำลังประมวลผลสไลด์หน้าที่ ${i + 1} จาก ${slides.length}...`;
+                        }
+
+                        const canvas = await html2canvas(slides[i], {
+                            scale: 1.5, // 1600 * 1.5 = 2400px crisp widescreen resolution
+                            useCORS: true,
+                            logging: false,
+                            backgroundColor: '#ffffff',
+                            width: 1600,
+                            height: 900
+                        });
+
+                        const imgData = canvas.toDataURL('image/jpeg', 0.96);
+                        if (i > 0) {
+                            pdf.addPage([297, 167.06], 'landscape');
+                        }
+                        pdf.addImage(imgData, 'JPEG', 0, 0, 297, 167.06);
+                    }
+
+                    pdf.save(fileNames[targetMode] || 'สไลด์นำเสนอสุขภาพ_รพ_ศรีณรงค์_16x9.pdf');
+                } else {
+                    window.print();
+                }
+            } catch (error) {
+                console.error('16:9 Slide PDF generation failed:', error);
+                window.print();
+            } finally {
+                // Clear offscreen stage
+                const stage = document.getElementById('ppt-slide-stage');
+                if (stage) stage.innerHTML = '';
+
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                    overlay.classList.remove('flex');
+                }
+            }
+        }
+
+        // Fallback browser print dialog
+        function triggerBrowserPrint() {
+            const menu = document.getElementById('pdf-dropdown-menu');
+            if (menu) menu.classList.add('hidden');
+            window.print();
+        }
+
+        // Filter functionality for both table rows and infographic cards
+        function filterCards(category) {
+            currentFilterCategory = category;
+            const cards = document.querySelectorAll('#cards-grid .card-item');
+            const rows = document.querySelectorAll('#executive-table .table-row-item');
+            const buttons = {
+                'all': document.getElementById('btn-all'),
+                'critical': document.getElementById('btn-critical'),
+                'warning': document.getElementById('btn-warning'),
+                'good': document.getElementById('btn-good')
+            };
+
+            // Reset button styles
+            Object.values(buttons).forEach(btn => {
+                if (btn) {
+                    btn.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+                    btn.classList.add('text-slate-600');
+                }
+            });
+
+            // Highlight active button
+            if (buttons[category]) {
+                buttons[category].classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+                buttons[category].classList.remove('text-slate-600');
+            }
+
+            // Show/hide cards
+            cards.forEach(card => {
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide table rows
+            rows.forEach(row => {
+                if (category === 'all' || row.getAttribute('data-category') === category) {
+                    row.style.display = 'table-row';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Copy Executive Table to Clipboard
+        function copyTableText() {
+            const table = document.getElementById('executive-table');
+            if (!table) return;
+
+            let text = '';
+            const rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                if (row.style.display === 'none') return;
+                const cols = row.querySelectorAll('th, td');
+                const rowData = [];
+                cols.forEach(col => {
+                    rowData.push(col.innerText.replace(/\s+/g, ' ').trim());
+                });
+                text += rowData.join('\t') + '\n';
+            });
+
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const btnText = document.getElementById('copy-btn-text');
+                if (btnText) {
+                    const original = btnText.innerText;
+                    btnText.innerText = 'คัดลอกเรียบร้อยแล้ว!';
+                    setTimeout(() => { btnText.innerText = original; }, 2000);
+                }
+            } catch (err) {
+                console.error('Copy failed', err);
+            }
+            document.body.removeChild(textarea);
+        }
+    </script>
+</body>
+</html>
