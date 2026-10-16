@@ -135,7 +135,7 @@
             <!-- View Switcher -->
             <div class="inline-flex flex-wrap rounded-lg border border-slate-200 p-1 bg-slate-100">
                 <button onclick="setViewMode('both')" id="view-both" class="px-3 py-1.5 text-xs font-semibold rounded-md bg-white text-blue-700 shadow-sm transition flex items-center gap-1.5">
-                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> แสดงทั้งหมด (5 สไลด์)
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> แสดงทั้งหมด (6 สไลด์)
                 </button>
                 <button onclick="setViewMode('table')" id="view-table" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
                     <i data-lucide="table" class="w-3.5 h-3.5"></i> เฉพาะตาราง (2 สไลด์ตัวใหญ่)
@@ -145,6 +145,9 @@
                 </button>
                 <button onclick="setViewMode('fitness')" id="view-fitness" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
                     <i data-lucide="dumbbell" class="w-3.5 h-3.5"></i> สมรรถภาพ & โภชนาการ (1 สไลด์)
+                </button>
+                <button onclick="setViewMode('gallery')" id="view-gallery" class="px-3 py-1.5 text-xs font-medium rounded-md text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                    <i data-lucide="images" class="w-3.5 h-3.5"></i> ภาพกิจกรรม (1 สไลด์)
                 </button>
             </div>
 
@@ -175,12 +178,19 @@
                 <input type="file" id="csv-file-input" accept=".csv,.txt" class="hidden" onchange="handleCSVUpload(event)">
             </label>
 
+            <!-- Batch Photo Upload Button to Replace Placeholders Instantly -->
+            <label for="batch-photo-input" class="cursor-pointer px-3 py-2 text-xs font-semibold rounded-lg border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100 transition flex items-center gap-1.5" title="เลือกไฟล์รูปภาพทั้ง 6 รูปจากเครื่องเพื่อแสดงในกรอบภาพประกอบทันที">
+                <i data-lucide="image-plus" class="w-3.5 h-3.5 text-amber-600"></i>
+                <span>ใส่รูปภาพจริง (6 รูป)</span>
+                <input type="file" id="batch-photo-input" accept="image/*" multiple class="hidden" onchange="handleBatchPhotoUpload(event)">
+            </label>
+
             <!-- Direct PDF Slide Download Dropdown by View -->
             <div class="relative inline-block text-left" id="pdf-dropdown-wrapper">
                 <div class="inline-flex rounded-lg shadow-sm">
                     <button onclick="downloadPDFByMode('current')" id="main-pdf-btn" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3.5 py-2.5 rounded-l-lg transition border-r border-blue-500">
                         <i data-lucide="monitor-down" class="w-4 h-4"></i>
-                        <span>ดาวน์โหลดสไลด์ PDF 16:9 (<span id="current-view-label">ทั้งหมด 5 หน้า</span>)</span>
+                        <span>ดาวน์โหลดสไลด์ PDF 16:9 (<span id="current-view-label">ทั้งหมด 6 หน้า</span>)</span>
                     </button>
                     <button onclick="togglePdfMenu(event)" type="button" class="inline-flex items-center bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-2.5 rounded-r-lg transition" title="เลือกดาวน์โหลดสไลด์แยกตามมุมมอง">
                         <i data-lucide="chevron-down" class="w-4 h-4"></i>
@@ -205,7 +215,7 @@
                             <i data-lucide="layers" class="w-4 h-4 text-slate-500"></i>
                             <span>ชุดสไลด์นำเสนอฉบับเต็ม (ครบทุกส่วน)</span>
                         </span>
-                        <span class="text-[10px] text-slate-400 font-medium">5 สไลด์</span>
+                        <span class="text-[10px] text-slate-400 font-medium">6 สไลด์</span>
                     </button>
                     <button onclick="downloadPDFByMode('table')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition">
                         <span class="flex items-center gap-2">
@@ -227,6 +237,13 @@
                             <span>สไลด์อินโฟกราฟิก 4 มิติหลัก</span>
                         </span>
                         <span class="text-[10px] text-slate-400 font-medium">2 สไลด์</span>
+                    </button>
+                    <button onclick="downloadPDFByMode('gallery')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between transition">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="images" class="w-4 h-4 text-slate-500"></i>
+                            <span>สไลด์ภาพบรรยากาศการดำเนินงาน (6 กิจกรรม)</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">1 สไลด์</span>
                     </button>
                     <div class="border-t border-slate-100 mt-1 pt-1">
                         <button onclick="triggerBrowserPrint()" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-500 transition">
@@ -934,10 +951,27 @@
                 </div>
 
             </div>
+
+            <!-- Inline Mini Visual Strip inside Fitness Section -->
+            <div class="mt-5 bg-indigo-950/95 text-white rounded-xl p-4 border border-indigo-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-amber-400/20 border border-amber-400/40 text-amber-300 p-2.5 rounded-xl shrink-0">
+                        <i data-lucide="camera" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">บันทึกภาพการดำเนินงานจริงของคณะกรรมการ HPH และศูนย์คุณภาพ (26–28 ส.ค. 2568)</h4>
+                        <p class="text-xs text-indigo-200">ดำเนินการตรวจวัดองค์ประกอบร่างกาย ทดสอบสมรรถภาพ ให้คำปรึกษาโภชนาการรายบุคคล และส่งเสริมกิจกรรมเดิน-วิ่งเพื่อสุขภาพ</p>
+                    </div>
+                </div>
+                <button onclick="document.getElementById('section-gallery').scrollIntoView({behavior: 'smooth'})" class="no-print shrink-0 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-lg border border-white/20 transition flex items-center gap-1.5">
+                    <i data-lucide="images" class="w-4 h-4 text-amber-300"></i>
+                    <span>ดูแกลเลอรีภาพกิจกรรม (6 ภาพ)</span>
+                </button>
+            </div>
         </div>
 
         <!-- SECTION 3: INFOGRAPHIC GRID (4 Core Quadrants) -->
-        <div id="section-infographic" class="p-6 sm:p-8 bg-slate-50/50">
+        <div id="section-infographic" class="p-6 sm:p-8 bg-slate-50/50 border-b border-slate-200">
             <div class="flex items-center justify-between gap-3 mb-6">
                 <div class="flex items-center gap-3">
                     <div class="w-1.5 h-7 bg-indigo-600 rounded-full"></div>
@@ -1296,6 +1330,230 @@
             </div>
         </div>
 
+        <!-- SECTION 4: ACTIVITY PHOTO GALLERY & PLACEHOLDERS (6 Operational Highlights) -->
+        <div id="section-gallery" class="p-6 sm:p-8 bg-gradient-to-b from-white to-slate-50 border-b border-slate-200 card-break">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-1.5 h-8 bg-teal-600 rounded-full"></div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-900">
+                                ประมวลภาพบรรยากาศการดำเนินงานตรวจวัดสมรรถภาพและส่งเสริมสุขภาพบุคลากร
+                            </h2>
+                            <span class="bg-teal-100 text-teal-800 border border-teal-300 text-[11px] font-bold px-2.5 py-0.5 rounded-full">
+                                HPH & ศูนย์คุณภาพ รพ.ศรีณรงค์
+                            </span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">
+                            แสดงภาพ Placeholder สำหรับหน้าเว็บ พร้อมคำบรรยายกิจกรรมทั้ง 6 ด้าน (คลิกที่กรอบภาพแต่ละใบ หรือปุ่ม <strong>"ใส่รูปภาพจริง"</strong> เพื่อแสดงภาพถ่ายจริงได้ทันที)
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 no-print">
+                    <label for="batch-photo-input" class="cursor-pointer inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl shadow-sm transition">
+                        <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                        <span>อัปโหลดรูปภาพจริงใส่กรอบ (เลือกพร้อมกัน 6 รูปได้)</span>
+                    </label>
+                    <button onclick="resetAllPlaceholders()" class="inline-flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs font-medium px-3 py-2 rounded-xl border border-slate-200 transition" title="รีเซ็ตกลับเป็นภาพ Placeholder มาตรฐาน">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>ค่าเริ่มต้น Placeholder</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 6-Card Photo Grid (3 Columns x 2 Rows for 16:9 Widescreen Harmony) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="photo-gallery-grid">
+
+                <!-- Photo Card 1: Weight, Height & BMI Station (2f27d8e1-c6d1-4b8b-8254-4c51841beeb8.jpeg) -->
+                <div class="photo-card group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                    <div class="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden cursor-pointer" onclick="triggerSinglePhotoUpload(0)" title="คลิกเพื่อเปลี่ยนรูปภาพในช่องที่ 1">
+                        <img id="gallery-img-0"
+                             src="https://placehold.co/800x500/0f172a/38bdf8?text=1.+Station:+BMI+%26+Weight-Height+Check%0A(%E0%B8%88%E0%B8%B8%E0%B8%94%E0%B8%8A%E0%B8%B1%E0%B9%88%E0%B8%87%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%AB%E0%B8%99%E0%B8%B1%E0%B8%81-%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%AA%E0%B9%88%E0%B8%A7%E0%B8%99%E0%B8%AA%E0%B8%B9%E0%B8%87+%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%A1%E0%B8%B4%E0%B8%99+BMI)"
+                             data-default-src="https://placehold.co/800x500/0f172a/38bdf8?text=1.+Station:+BMI+%26+Weight-Height+Check%0A(%E0%B8%88%E0%B8%B8%E0%B8%94%E0%B8%8A%E0%B8%B1%E0%B9%88%E0%B8%87%E0%B8%99%E0%B9%89%E0%B8%B3%E0%B8%AB%E0%B8%99%E0%B8%B1%E0%B8%81-%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%AA%E0%B9%88%E0%B8%A7%E0%B8%99%E0%B8%AA%E0%B8%B9%E0%B8%87+%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%A1%E0%B8%B4%E0%B8%99+BMI)"
+                             onerror="this.src='https://placehold.co/800x500/0f172a/38bdf8?text=1.+BMI+%26+Weight+Check'"
+                             alt="จุดชั่งน้ำหนักและวัดส่วนสูงประเมินค่าดัชนีมวลกาย (BMI)"
+                             class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                        <div class="absolute top-2.5 left-2.5 bg-slate-900/80 backdrop-blur-sm text-sky-300 text-[10px] font-bold px-2.5 py-1 rounded-full border border-sky-400/30 flex items-center gap-1">
+                            <i data-lucide="scale" class="w-3 h-3"></i> สถานีที่ 1: คัดกรอง BMI
+                        </div>
+                        <div class="no-print absolute bottom-2 right-2 bg-black/65 text-white text-[10px] px-2 py-1 rounded-md opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                            <i data-lucide="camera" class="w-3 h-3"></i> คลิกเปลี่ยนรูป
+                        </div>
+                        <input type="file" id="single-photo-input-0" accept="image/*" class="hidden" onchange="handleSinglePhotoUpload(event, 0)">
+                    </div>
+                    <div class="p-3.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">1. การชั่งน้ำหนัก วัดส่วนสูง และประเมินค่า BMI</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                คัดกรองดัชนีมวลกายและสัดส่วนร่างกายบุคลากร (เข้าร่วม 116 คน คิดเป็น 80%) เพื่อค้นหากลุ่มเสี่ยงภาวะน้ำหนักเกิน (53%)
+                            </p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500">กลุ่มเป้าหมาย: บุคลากรทุกวิชาชีพ</span>
+                            <span class="font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">เข้าร่วม 80%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Card 2: Body Composition Analyzer (d4782147-b11a-4cd3-b7cc-cafb52ee621a.jpeg) -->
+                <div class="photo-card group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                    <div class="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden cursor-pointer" onclick="triggerSinglePhotoUpload(1)" title="คลิกเพื่อเปลี่ยนรูปภาพในช่องที่ 2">
+                        <img id="gallery-img-1"
+                             src="https://placehold.co/800x500/1e1b4b/a5b4fc?text=2.+Body+Composition+Analyzer%0A(%E0%B8%95%E0%B8%A3%E0%B8%A7%E0%B8%88%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%9B%E0%B8%A3%E0%B8%B4%E0%B8%A1%E0%B8%B2%E0%B8%93%E0%B9%84%E0%B8%82%E0%B8%A1%E0%B8%B1%E0%B8%99%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%A1%E0%B8%A7%E0%B8%A5%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%99%E0%B8%B7%E0%B9%89%E0%B8%AD)"
+                             data-default-src="https://placehold.co/800x500/1e1b4b/a5b4fc?text=2.+Body+Composition+Analyzer%0A(%E0%B8%95%E0%B8%A3%E0%B8%A7%E0%B8%88%E0%B8%A7%E0%B8%B1%E0%B8%94%E0%B8%9B%E0%B8%A3%E0%B8%B4%E0%B8%A1%E0%B8%B2%E0%B8%93%E0%B9%84%E0%B8%82%E0%B8%A1%E0%B8%B1%E0%B8%99%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%A1%E0%B8%A7%E0%B8%A5%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%99%E0%B8%B7%E0%B9%89%E0%B8%AD)"
+                             onerror="this.src='https://placehold.co/800x500/1e1b4b/a5b4fc?text=2.+Body+Composition+Check'"
+                             alt="การตรวจวัดองค์ประกอบร่างกาย มวลไขมัน และมวลกล้ามเนื้อด้วยเครื่องวัดไฟฟ้า"
+                             class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                        <div class="absolute top-2.5 left-2.5 bg-indigo-950/80 backdrop-blur-sm text-indigo-200 text-[10px] font-bold px-2.5 py-1 rounded-full border border-indigo-400/30 flex items-center gap-1">
+                            <i data-lucide="activity" class="w-3 h-3"></i> สถานีที่ 2: วัดไขมัน & กล้ามเนื้อ
+                        </div>
+                        <div class="no-print absolute bottom-2 right-2 bg-black/65 text-white text-[10px] px-2 py-1 rounded-md opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                            <i data-lucide="camera" class="w-3 h-3"></i> คลิกเปลี่ยนรูป
+                        </div>
+                        <input type="file" id="single-photo-input-1" accept="image/*" class="hidden" onchange="handleSinglePhotoUpload(event, 1)">
+                    </div>
+                    <div class="p-3.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">2. การตรวจวิเคราะห์ปริมาณไขมันและมวลกล้ามเนื้อ</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                ใช้เครื่อง Body Composition Analyzer วิเคราะห์เชิงลึก พบชาย &lt;40 ปีไขมันสูง (26.52%) และหญิงมวลกล้ามเนื้อน้อยกว่าเกณฑ์
+                            </p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500">เครื่องมือ: Omron Body Scan</span>
+                            <span class="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded">วิเคราะห์รายบุคคล</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Card 3: Sit and Reach Back Flexibility (94c31ab1-c190-4635-948e-d5e552fd441f.jpeg) -->
+                <div class="photo-card group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                    <div class="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden cursor-pointer" onclick="triggerSinglePhotoUpload(2)" title="คลิกเพื่อเปลี่ยนรูปภาพในช่องที่ 3">
+                        <img id="gallery-img-2"
+                             src="https://placehold.co/800x500/431407/fdba74?text=3.+Back+%26+Shoulder+Flexibility+Test%0A(%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B8%A2%E0%B8%B7%E0%B8%94%E0%B8%AB%E0%B8%A2%E0%B8%B8%E0%B9%88%E0%B8%99%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B9%84%E0%B8%AB%E0%B8%A5%E0%B9%88)"
+                             data-default-src="https://placehold.co/800x500/431407/fdba74?text=3.+Back+%26+Shoulder+Flexibility+Test%0A(%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B8%A2%E0%B8%B7%E0%B8%94%E0%B8%AB%E0%B8%A2%E0%B8%B8%E0%B9%88%E0%B8%99%E0%B8%AB%E0%B8%A5%E0%B8%B1%E0%B8%87%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B9%84%E0%B8%AB%E0%B8%A5%E0%B9%88)"
+                             onerror="this.src='https://placehold.co/800x500/431407/fdba74?text=3.+Flexibility+Test'"
+                             alt="การทดสอบความยืดหยุ่นของกล้ามเนื้อหลังและต้นขา (Sit and Reach Test)"
+                             class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                        <div class="absolute top-2.5 left-2.5 bg-orange-950/80 backdrop-blur-sm text-orange-200 text-[10px] font-bold px-2.5 py-1 rounded-full border border-orange-400/30 flex items-center gap-1">
+                            <i data-lucide="stretch-horizontal" class="w-3 h-3"></i> สถานีที่ 3: ความยืดหยุ่นสรีระ
+                        </div>
+                        <div class="no-print absolute bottom-2 right-2 bg-black/65 text-white text-[10px] px-2 py-1 rounded-md opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                            <i data-lucide="camera" class="w-3 h-3"></i> คลิกเปลี่ยนรูป
+                        </div>
+                        <input type="file" id="single-photo-input-2" accept="image/*" class="hidden" onchange="handleSinglePhotoUpload(event, 2)">
+                    </div>
+                    <div class="p-3.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">3. การทดสอบความยืดหยุ่นของหลังและหัวไหล่</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                ประเมินความตึงตัวของกล้ามเนื้อจากการทำงาน พบภาวะไหล่ตึง 54 ราย (46.6%) และหลังตึง 28 ราย (24.8%) นำสู่แผนฟื้นฟูสรีระ
+                            </p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500">ทีมตรวจ: Quality & HPH Team</span>
+                            <span class="font-bold text-orange-700 bg-orange-50 px-2 py-0.5 rounded">พบไหล่ตึง 46.6%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Card 4: Muscular Endurance / Push-up Test (10704502-871f-4abc-bc0b-e1796aaf55d4.jpeg) -->
+                <div class="photo-card group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                    <div class="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden cursor-pointer" onclick="triggerSinglePhotoUpload(3)" title="คลิกเพื่อเปลี่ยนรูปภาพในช่องที่ 4">
+                        <img id="gallery-img-3"
+                             src="https://placehold.co/800x500/064e3b/6ee7b7?text=4.+Muscular+Strength+%26+Push-Up+Test%0A(%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B9%81%E0%B8%82%E0%B9%87%E0%B8%87%E0%B9%81%E0%B8%A3%E0%B8%87%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B8%97%E0%B8%99%E0%B8%97%E0%B8%B2%E0%B8%99%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%99%E0%B8%B7%E0%B9%89%E0%B8%AD)"
+                             data-default-src="https://placehold.co/800x500/064e3b/6ee7b7?text=4.+Muscular+Strength+%26+Push-Up+Test%0A(%E0%B8%97%E0%B8%94%E0%B8%AA%E0%B8%AD%E0%B8%9A%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B9%81%E0%B8%82%E0%B9%87%E0%B8%87%E0%B9%81%E0%B8%A3%E0%B8%87%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B8%84%E0%B8%A7%E0%B8%B2%E0%B8%A1%E0%B8%97%E0%B8%99%E0%B8%97%E0%B8%B2%E0%B8%99%E0%B8%81%E0%B8%A5%E0%B9%89%E0%B8%B2%E0%B8%A1%E0%B9%80%E0%B8%99%E0%B8%B7%E0%B9%89%E0%B8%AD)"
+                             onerror="this.src='https://placehold.co/800x500/064e3b/6ee7b7?text=4.+Muscular+Endurance+Test'"
+                             alt="การทดสอบความแข็งแรงและความทนทานของกล้ามเนื้อด้วยการดันพื้น (Push-up)"
+                             class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                        <div class="absolute top-2.5 left-2.5 bg-emerald-950/80 backdrop-blur-sm text-emerald-200 text-[10px] font-bold px-2.5 py-1 rounded-full border border-emerald-400/30 flex items-center gap-1">
+                            <i data-lucide="biceps-flexed" class="w-3 h-3"></i> สถานีที่ 4: ความแข็งแรงกล้ามเนื้อ
+                        </div>
+                        <div class="no-print absolute bottom-2 right-2 bg-black/65 text-white text-[10px] px-2 py-1 rounded-md opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                            <i data-lucide="camera" class="w-3 h-3"></i> คลิกเปลี่ยนรูป
+                        </div>
+                        <input type="file" id="single-photo-input-3" accept="image/*" class="hidden" onchange="handleSinglePhotoUpload(event, 3)">
+                    </div>
+                    <div class="p-3.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">4. การทดสอบความแข็งแรงและความทนทานของกล้ามเนื้อ</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                ทดสอบสมรรถภาพความแข็งแรงของกล้ามเนื้อแกนกลางลำตัว แขน และแรงบีบมือ (ผ่านเกณฑ์มาตรฐานสูงถึง 96.6%)
+                            </p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500">สมรรถภาพกล้ามเนื้อ</span>
+                            <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">แรงบีบมือผ่าน 96.6%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Card 5: Resistance Training & Individual Counseling (8ca2eec2... / d7bd13b4...) -->
+                <div class="photo-card group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                    <div class="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden cursor-pointer" onclick="triggerSinglePhotoUpload(4)" title="คลิกเพื่อเปลี่ยนรูปภาพในช่องที่ 5">
+                        <img id="gallery-img-4"
+                             src="https://placehold.co/800x500/701a75/f5d0fe?text=5.+Strength+Training+%26+Health+Counseling%0A(%E0%B8%9D%E0%B8%B6%E0%B8%81%E0%B8%A2%E0%B8%81+Kettlebell-%E0%B8%94%E0%B8%B1%E0%B8%A1%E0%B9%80%E0%B8%9A%E0%B8%A5%E0%B8%A5%E0%B9%8C+%26+%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B8%84%E0%B8%B3%E0%B9%81%E0%B8%99%E0%B8%B0%E0%B8%99%E0%B8%B3%E0%B8%AA%E0%B8%B8%E0%B8%82%E0%B8%A0%E0%B8%B2%E0%B8%9E)"
+                             data-default-src="https://placehold.co/800x500/701a75/f5d0fe?text=5.+Strength+Training+%26+Health+Counseling%0A(%E0%B8%9D%E0%B8%B6%E0%B8%81%E0%B8%A2%E0%B8%81+Kettlebell-%E0%B8%94%E0%B8%B1%E0%B8%A1%E0%B9%80%E0%B8%9A%E0%B8%A5%E0%B8%A5%E0%B9%8C+%26+%E0%B9%83%E0%B8%AB%E0%B9%89%E0%B8%84%E0%B8%B3%E0%B9%81%E0%B8%99%E0%B8%B0%E0%B8%99%E0%B8%B3%E0%B8%AA%E0%B8%B8%E0%B8%82%E0%B8%A0%E0%B8%B2%E0%B8%9E)"
+                             onerror="this.src='https://placehold.co/800x500/701a75/f5d0fe?text=5.+Strength+%26+Counseling'"
+                             alt="การส่งเสริมการออกกำลังกายแบบมีแรงต้านและการให้คำปรึกษาภาวะโภชนาการรายบุคคล"
+                             class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                        <div class="absolute top-2.5 left-2.5 bg-fuchsia-950/80 backdrop-blur-sm text-fuchsia-200 text-[10px] font-bold px-2.5 py-1 rounded-full border border-fuchsia-400/30 flex items-center gap-1">
+                            <i data-lucide="dumbbell" class="w-3 h-3"></i> สถานีที่ 5: เสริมกล้ามเนื้อ & โภชนาการ
+                        </div>
+                        <div class="no-print absolute bottom-2 right-2 bg-black/65 text-white text-[10px] px-2 py-1 rounded-md opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                            <i data-lucide="camera" class="w-3 h-3"></i> คลิกเปลี่ยนรูป
+                        </div>
+                        <input type="file" id="single-photo-input-4" accept="image/*" class="hidden" onchange="handleSinglePhotoUpload(event, 4)">
+                    </div>
+                    <div class="p-3.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">5. การฝึกสร้างมวลกล้ามเนื้อ & ให้คำปรึกษาโภชนาการ</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                แนะนำการออกกำลังกายด้วย Kettlebell/ดัมเบลล์เพื่อเพิ่มมวลกล้ามเนื้อในบุคลากรหญิง พร้อมแปลผลและให้คำปรึกษาปรับลดหวาน-มัน-เค็มรายบุคคล
+                            </p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500">ดูแลใกล้ชิดรายบุคคล</span>
+                            <span class="font-bold text-fuchsia-700 bg-fuchsia-50 px-2 py-0.5 rounded">เฝ้าระวังพิเศษ 7 ราย</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photo Card 6: Outdoor Running & Active Health Promotion (48e5878f-c698-4b61-8783-e5ce7ffc8a36.jpeg) -->
+                <div class="photo-card group bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col">
+                    <div class="relative aspect-[16/10] w-full bg-slate-100 overflow-hidden cursor-pointer" onclick="triggerSinglePhotoUpload(5)" title="คลิกเพื่อเปลี่ยนรูปภาพในช่องที่ 6">
+                        <img id="gallery-img-5"
+                             src="https://placehold.co/800x500/134e4a/99f6e4?text=6.+Srinarong+Active+%26+Fun+Run+Campaign%0A(%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%A3%E0%B8%A3%E0%B8%A1%E0%B9%80%E0%B8%94%E0%B8%B4%E0%B8%99-%E0%B8%A7%E0%B8%B4%E0%B9%88%E0%B8%87%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%AA%E0%B8%A3%E0%B8%B4%E0%B8%A1%E0%B8%AA%E0%B8%B8%E0%B8%82%E0%B8%A0%E0%B8%B2%E0%B8%9E+%E0%B8%A3%E0%B8%9E.%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%93%E0%B8%A3%E0%B8%87%E0%B8%84%E0%B9%8C)"
+                             data-default-src="https://placehold.co/800x500/134e4a/99f6e4?text=6.+Srinarong+Active+%26+Fun+Run+Campaign%0A(%E0%B8%81%E0%B8%B4%E0%B8%88%E0%B8%81%E0%B8%A3%E0%B8%A3%E0%B8%A1%E0%B9%80%E0%B8%94%E0%B8%B4%E0%B8%99-%E0%B8%A7%E0%B8%B4%E0%B9%88%E0%B8%87%E0%B8%AA%E0%B9%88%E0%B8%87%E0%B9%80%E0%B8%AA%E0%B8%A3%E0%B8%B4%E0%B8%A1%E0%B8%AA%E0%B8%B8%E0%B8%82%E0%B8%A0%E0%B8%B2%E0%B8%9E+%E0%B8%A3%E0%B8%9E.%E0%B8%A8%E0%B8%A3%E0%B8%B5%E0%B8%93%E0%B8%A3%E0%B8%87%E0%B8%84%E0%B9%8C)"
+                             onerror="this.src='https://placehold.co/800x500/134e4a/99f6e4?text=6.+Srinarong+Active+Run'"
+                             alt="การส่งเสริมบุคลากรเข้าร่วมกิจกรรมเดิน-วิ่งเพื่อสุขภาพและสร้างความสุขในองค์กร"
+                             class="w-full h-full object-cover transition duration-300 group-hover:scale-105">
+                        <div class="absolute top-2.5 left-2.5 bg-teal-950/80 backdrop-blur-sm text-teal-200 text-[10px] font-bold px-2.5 py-1 rounded-full border border-teal-400/30 flex items-center gap-1">
+                            <i data-lucide="footprints" class="w-3 h-3"></i> มิติที่ 6: ส่งเสริมการออกกำลังกาย
+                        </div>
+                        <div class="no-print absolute bottom-2 right-2 bg-black/65 text-white text-[10px] px-2 py-1 rounded-md opacity-80 group-hover:opacity-100 flex items-center gap-1">
+                            <i data-lucide="camera" class="w-3 h-3"></i> คลิกเปลี่ยนรูป
+                        </div>
+                        <input type="file" id="single-photo-input-5" accept="image/*" class="hidden" onchange="handleSinglePhotoUpload(event, 5)">
+                    </div>
+                    <div class="p-3.5 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-xs text-slate-900">6. กิจกรรมเดิน-วิ่งสร้างเสริมสุขภาพและความสุขบุคลากร</h3>
+                            <p class="text-[11px] text-slate-600 mt-0.5 leading-snug">
+                                ส่งเสริมให้บุคลากรโรงพยาบาลศรีณรงค์ร่วมกิจกรรมเดิน-วิ่งและรับประทานผลไม้ตามฤดูกาล สร้างวัฒนธรรมองค์กรสุขภาพดี (Happy & Healthy Hospital)
+                            </p>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                            <span class="text-slate-500">วัฒนธรรมองค์กร HPH</span>
+                            <span class="font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded">สานต่อปี 2569</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
         <!-- Executive Footer / Roadmap Summary -->
         <div class="bg-slate-100 px-8 py-5 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600 card-break">
             <div class="flex items-start sm:items-center gap-2 font-medium text-slate-800">
@@ -1315,6 +1573,102 @@
     <script>
         // Initialize Lucide icons
         lucide.createIcons();
+
+        // Trigger file input for a single placeholder slot
+        function triggerSinglePhotoUpload(index) {
+            if (isEditMode) return;
+            const input = document.getElementById(`single-photo-input-${index}`);
+            if (input) input.click();
+        }
+
+        // Load a single image file into a specific placeholder slot
+        function handleSinglePhotoUpload(event, index) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgEl = document.getElementById(`gallery-img-${index}`);
+                if (imgEl) {
+                    imgEl.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Load multiple selected photos (up to 6) into the 6 gallery slots automatically
+        function handleBatchPhotoUpload(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            // Optional smart matching by filename if the user selects the exact files uploaded earlier
+            const fileNameMap = {
+                '2f27d8e1': 0, // Weight/height BMI scale
+                'd4782147': 1, // Body fat analyzer
+                '94c31ab1': 2, // Sit and reach flexibility
+                '10704502': 3, // Push-up test
+                '8ca2eec2': 4, // Kettlebell/dumbbell
+                'd7bd13b4': 4, // Health counseling
+                '48e5878f': 5  // Outdoor running activity
+            };
+
+            const usedSlots = new Set();
+            const unmatchedFiles = [];
+
+            files.forEach(file => {
+                let matchedSlot = null;
+                for (const [prefix, slotIdx] of Object.entries(fileNameMap)) {
+                    if (file.name.toLowerCase().includes(prefix) && !usedSlots.has(slotIdx)) {
+                        matchedSlot = slotIdx;
+                        break;
+                    }
+                }
+                if (matchedSlot !== null) {
+                    usedSlots.add(matchedSlot);
+                    readFileIntoSlot(file, matchedSlot);
+                } else {
+                    unmatchedFiles.push(file);
+                }
+            });
+
+            // Fill remaining slots sequentially
+            let nextSlot = 0;
+            unmatchedFiles.forEach(file => {
+                while (usedSlots.has(nextSlot) && nextSlot < 6) {
+                    nextSlot++;
+                }
+                if (nextSlot < 6) {
+                    usedSlots.add(nextSlot);
+                    readFileIntoSlot(file, nextSlot);
+                    nextSlot++;
+                }
+            });
+
+            const gallerySection = document.getElementById('section-gallery');
+            if (gallerySection && gallerySection.style.display !== 'none') {
+                gallerySection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function readFileIntoSlot(file, slotIndex) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgEl = document.getElementById(`gallery-img-${slotIndex}`);
+                if (imgEl) {
+                    imgEl.src = e.target.result;
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Reset all 6 slots back to clean web placeholders
+        function resetAllPlaceholders() {
+            for (let i = 0; i < 6; i++) {
+                const imgEl = document.getElementById(`gallery-img-${i}`);
+                if (imgEl && imgEl.getAttribute('data-default-src')) {
+                    imgEl.src = imgEl.getAttribute('data-default-src');
+                }
+            }
+        }
 
         // CSV File Reader so user can verify/sync exact cells from local CSV file
         function handleCSVUpload(event) {
@@ -1376,17 +1730,19 @@
         }
 
         const viewLabels = {
-            'both': 'ทั้งหมด 5 หน้า',
+            'both': 'ทั้งหมด 6 หน้า',
             'table': 'เฉพาะตาราง 2 หน้า',
             'infographic': 'อินโฟกราฟิก 2 หน้า',
-            'fitness': 'สมรรถภาพ 1 หน้า'
+            'fitness': 'สมรรถภาพ 1 หน้า',
+            'gallery': 'ภาพกิจกรรม 1 หน้า'
         };
 
         const fileNames = {
             'both': 'สไลด์นำเสนอผู้บริหาร_รพ_ศรีณรงค์_16x9_ฉบับเต็ม.pdf',
             'table': 'สไลด์ตารางสรุปภาวะสุขภาพ_รพ_ศรีณรงค์_16x9.pdf',
             'infographic': 'สไลด์อินโฟกราฟิกสุขภาพ_4_มิติ_รพ_ศรีณรงค์_16x9.pdf',
-            'fitness': 'สไลด์สมรรถภาพร่างกายและโภชนาการ_ปี68_รพ_ศรีณรงค์_16x9.pdf'
+            'fitness': 'สไลด์สมรรถภาพร่างกายและโภชนาการ_ปี68_รพ_ศรีณรงค์_16x9.pdf',
+            'gallery': 'สไลด์ภาพบรรยากาศการดำเนินงาน_HPH_รพ_ศรีณรงค์_16x9.pdf'
         };
 
         // Switch between views
@@ -1395,6 +1751,7 @@
             const sectionTable = document.getElementById('section-table');
             const sectionInfo = document.getElementById('section-infographic');
             const sectionFitness = document.getElementById('section-fitness');
+            const sectionGallery = document.getElementById('section-gallery');
             const labelEl = document.getElementById('current-view-label');
             
             if (labelEl && viewLabels[mode]) {
@@ -1405,7 +1762,8 @@
                 'both': document.getElementById('view-both'),
                 'table': document.getElementById('view-table'),
                 'infographic': document.getElementById('view-infographic'),
-                'fitness': document.getElementById('view-fitness')
+                'fitness': document.getElementById('view-fitness'),
+                'gallery': document.getElementById('view-gallery')
             };
 
             Object.values(views).forEach(btn => {
@@ -1424,18 +1782,27 @@
                 sectionTable.style.display = 'block';
                 sectionFitness.style.display = 'block';
                 sectionInfo.style.display = 'block';
+                if (sectionGallery) sectionGallery.style.display = 'block';
             } else if (mode === 'table') {
                 sectionTable.style.display = 'block';
                 sectionFitness.style.display = 'none';
                 sectionInfo.style.display = 'none';
+                if (sectionGallery) sectionGallery.style.display = 'none';
             } else if (mode === 'infographic') {
                 sectionTable.style.display = 'none';
                 sectionFitness.style.display = 'none';
                 sectionInfo.style.display = 'block';
+                if (sectionGallery) sectionGallery.style.display = 'none';
             } else if (mode === 'fitness') {
                 sectionTable.style.display = 'none';
                 sectionFitness.style.display = 'block';
                 sectionInfo.style.display = 'none';
+                if (sectionGallery) sectionGallery.style.display = 'none';
+            } else if (mode === 'gallery') {
+                sectionTable.style.display = 'none';
+                sectionFitness.style.display = 'none';
+                sectionInfo.style.display = 'none';
+                if (sectionGallery) sectionGallery.style.display = 'block';
             }
         }
 
@@ -1582,6 +1949,28 @@
                         bodyHtml: `
                             <div class="p-7 flex-1 grid ${pair.length === 1 ? 'grid-cols-1 max-w-4xl mx-auto w-full' : 'grid-cols-2'} gap-6 items-stretch bg-slate-50/60 overflow-hidden">
                                 ${cardsHtml}
+                            </div>
+                        `
+                    });
+                }
+            }
+
+            // 4. Activity Photo Gallery Slide (6 Operational Stations in a 3x2 Widescreen Grid)
+            if (targetMode === 'both' || targetMode === 'gallery') {
+                const galleryGrid = document.getElementById('photo-gallery-grid');
+                if (galleryGrid) {
+                    const clonedGallery = galleryGrid.cloneNode(true);
+                    // Remove file inputs & hover badges for clean presentation slide
+                    clonedGallery.querySelectorAll('input, .no-print').forEach(el => el.remove());
+
+                    slideDefinitions.push({
+                        title: 'ประมวลภาพการดำเนินงานตรวจวัดสมรรถภาพและส่งเสริมสุขภาพบุคลากร',
+                        subtitle: 'ความมุ่งมั่นของคณะกรรมการ HPH และศูนย์คุณภาพ โรงพยาบาลศรีณรงค์ ในการดูแลสุขภาพคนทำงานเชิงรุกครบวงจร',
+                        bodyHtml: `
+                            <div class="p-6 flex-1 flex flex-col justify-center bg-slate-50/60 overflow-hidden">
+                                <div class="grid grid-cols-3 gap-4 h-full items-stretch">
+                                    ${clonedGallery.innerHTML}
+                                </div>
                             </div>
                         `
                     });
